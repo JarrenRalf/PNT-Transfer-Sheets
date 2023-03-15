@@ -269,7 +269,7 @@ function applyFullRowFormatting(sheet, row, numRows, numCols)
     sheet.getRange(row, 3, numRows         ).setBorder(null, true, null, null, null, null, 'black', SpreadsheetApp.BorderStyle.SOLID_MEDIUM)
                                             .setBorder(null, null, null, true, null, null, 'black', SpreadsheetApp.BorderStyle.SOLID_THICK);
   }
-  else if (SHEET_NAME === "Tites Counts")
+  else if (SHEET_NAME === "Trites Counts")
   {
     var numberFormats = [...Array(numRows)].map(e => ['@', '#.#', '#.#', '0.#']);
     sheet.getRange(row, 1, numRows, 4).setBorder(null, true, false, true, false, false, 'black', SpreadsheetApp.BorderStyle.SOLID_THICK).setNumberFormats(numberFormats);
