@@ -51,6 +51,25 @@ function doGet(e)
   return HtmlService.createHtmlOutputFromFile('SuccessfulDownload');
 }
 
+const inflow_conversions = {
+  '10010021FT - WEB: 210/60x3-1/4"X100md X200FM Body #21 -  - Twisted Tarred Nylon - FOOT': 1200,
+  '10100027 - WEB: 210/27x1-1/8"x200MDx105FMx235# -  - Twisted Tarred Nylon - POUND': 630, 
+  '101021027118 - WEB: 210/27x1-1/8"x100MDx 105FMS -  - Twisted Tarred Nylon - POUND': 226, 
+  '10110096 - WEB: 210/96 (6x16) x3"x100MDx50FMx230lbs -  - Cargo/Barrier - POUND': 230, 
+  '10120495FOOT - WEB: 210/224x3"x100MDxfoot ) #14x16 -  - Braided Tarred Nylon - FOOT': 150, 
+  '10210096 - WEB: 210/96x3-5/8"x25MDx100 FMS Braid k -  - Braided Tarred Nylon - POUND': 96,
+  '10500027FT - WEB: 210/27x 2"x400MDx foot GOLF -  - Golf - FOOT': 600, 
+  '10500030 - WEB: 3MM Braided  Knotted PE X4"X 100MD -  - Golf - POUND': 285,
+  '10500128 - WEB: 210/128x2"x50MDx100FMx250LBS - North Pacific - Hockey/Lacrosse - POUND': 250,
+  '10500144 - Black Cod Web 210/144 x 3in x 28md x 200 -  - Web - Miscellaneous - POUND': 375, 
+  '10500360 - WEB: #36 x 3"x34MD BROWN HD ACRYLIC -  - Golf - POUND': 1, 
+  '10501001FT - WEB: PNT BLACKBIRD 15mm Sq x 2m deep -  - Golf - FOOT': 328.084, 
+  '10503000 - WEB: #30 x 2"x50MD BLACK HD ACRYLIC COAT -  - Golf - POUND': 1, 
+  "10503600 - VEXAR L36 WEB for CRAB CAGE  (100'/ROLL) -  - Golf - FOOT": 100,
+  '10710010FT - WEB: 210/10x1/2"x800MDx100FMx235# RACHL -  - Raschel Knotless - FOOT': 600, 
+  '10782109038 - Rachel Black We 210/9 X 3/8" X465MDX 900 -  - Raschel Knotless - POUND': 235 
+}
+
 /**
  * This function allows Adrian to select items on the INVENTORY page and move them to the SearchData page which will cause 
  * them to now be available for search on Item Search sheet. This function effectively removes "No TS" for the current day.
@@ -1102,8 +1121,10 @@ function clearInventory()
   const activeItems = csvData.filter(item => item[10] === 'A').sort(sortByCategories) // Remove the inactive items and sort by the categories
   const numRows = activeItems.unshift(header); // Add the header back to the top of the array
   const inflowData = Object.values(Utilities.parseCsv(DriveApp.getFilesByName("inFlow_StockLevels.csv").next().getBlob().getDataAsString()).reduce((acc, val) => {
-    if (acc[val[0]]) acc[val[0]][1] = Number(acc[val[0]][1]) + Number(val[4]); // Sum the quantities if item is in multiple locations
-    else if (val[0].split(" - ").length > 4) acc[val[0]] = [val[0], Number(val[4])]; // Add the item to the new list if it contains the typical google sheets item format with "space - space"
+    // Sum the quantities if item is in multiple locations
+    if (acc[val[0]]) acc[val[0]][1] = (inflow_conversions.hasOwnProperty(val[0])) ? Number(acc[val[0]][1]) + Number(val[4])*inflow_conversions[val[0]] : Number(acc[val[0]][1]) + Number(val[4]); 
+    // Add the item to the new list if it contains the typical google sheets item format with "space - space"
+    else if (val[0].split(" - ").length > 4) acc[val[0]] = [val[0], (inflow_conversions.hasOwnProperty(val[0])) ? Number(val[4])*inflow_conversions[val[0]] : Number(val[4])]; 
     return acc;
   }, {}));
   var isInFlowItem;
