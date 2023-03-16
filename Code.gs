@@ -3376,21 +3376,79 @@ function search(e, spreadsheet, sheet)
     if (values.length !== 0) // Don't run function if every value is blank, probably means the user pressed the delete key on a large selection
     {
       const inventorySheet = spreadsheet.getSheetByName('INVENTORY');
-      const data = inventorySheet.getSheetValues(10, 1, inventorySheet.getLastRow() - 9, 7);
-      var someSKUsNotFound = false;
+      var data, someSKUsNotFound = false, skus;
 
-      const skus = values.map(sku => sku[0].substring(0,4) + sku[0].substring(5,9) + sku[0].substring(10)).map(item => {
-      
-        for (var i = 0; i < data.length; i++)
+      if (isRichmondSpreadsheet(spreadsheet))
+      {
+        data = inventorySheet.getSheetValues(8, 1, inventorySheet.getLastRow() - 7, 8);
+
+        if (values[0][0].toString().includes('-'))
         {
-          if (data[i][6] == item.toString().toUpperCase())
-            return [data[i][0], data[i][1], '', data[i][3],data[i][2],data[i][4]]
+          skus = values.map(sku => sku[0].substring(0,4) + sku[0].substring(5,9) + sku[0].substring(10)).map(item => {
+          
+            for (var i = 0; i < data.length; i++)
+            {
+              if (data[i][7] == item.toString().toUpperCase())
+                return [data[i][0], data[i][1], '', data[i][3], data[i][4], data[i][5], data[i][6]]
+            }
+
+            someSKUsNotFound = true;
+
+            return ['SKU Not Found:', item, '', '', '', '', '']
+          });
         }
+        else
+        {
+          skus = values.map(item => {
+          
+            for (var i = 0; i < data.length; i++)
+            {
+              if (data[i][7] == item[0].toString().toUpperCase())
+                return [data[i][0], data[i][1], '', data[i][3], data[i][4], data[i][5], data[i][6]]
+            }
 
-        someSKUsNotFound = true;
+            someSKUsNotFound = true;
 
-        return ['SKU Not Found:', item, '','','','']
-      });
+            return ['SKU Not Found:', item[0], '', '', '', '', '']
+          });
+        }
+      }
+      else
+      {
+        data = inventorySheet.getSheetValues(10, 1, inventorySheet.getLastRow() - 9, 7);
+        var columnIndex = (isParksvilleSpreadsheet(spreadsheet)) ? [3, 2, 4, 5] : [4, 2, 3, 5];
+        
+        if (values[0][0].toString().includes('-'))
+        {
+          skus = values.map(sku => sku[0].substring(0,4) + sku[0].substring(5,9) + sku[0].substring(10)).map(item => {
+          
+            for (var i = 0; i < data.length; i++)
+            {
+              if (data[i][6] == item.toString().toUpperCase())
+                return [data[i][0], data[i][1], '',  ...columnIndex.map(col => data[i][col])]
+            }
+
+            someSKUsNotFound = true;
+
+            return ['SKU Not Found:', item, '', '', '', '', '']
+          });
+        }
+        else
+        {
+          skus = values.map(item => {
+          
+            for (var i = 0; i < data.length; i++)
+            {
+              if (data[i][6] == item[0].toString().toUpperCase())
+                return [data[i][0], data[i][1], '', ...columnIndex.map(col => data[i][col])]
+            }
+
+            someSKUsNotFound = true;
+
+            return ['SKU Not Found:', item[0], '', '', '', '', '']
+          });
+        }
+      }
 
       if (someSKUsNotFound)
       {
@@ -3410,22 +3468,22 @@ function search(e, spreadsheet, sheet)
         const numSkusNotFound = skusNotFound.length;
         const items = [].concat.apply([], [skusNotFound, skusFound]); // Concatenate all of the item values as a 2-D array
         const numItems = items.length
-        const horizontalAlignments = new Array(numItems).fill(['center', 'left', 'center', 'center', 'center', 'center'])
-        const WHITE = new Array(6).fill('white')
-        const YELLOW = new Array(6).fill('#ffe599')
+        const horizontalAlignments = new Array(numItems).fill(['center', 'left', 'center', 'center', 'center', 'center', 'center'])
+        const WHITE = new Array(7).fill('white')
+        const YELLOW = new Array(7).fill('#ffe599')
         const colours = [].concat.apply([], [new Array(numSkusNotFound).fill(YELLOW), new Array(numSkusFound).fill(WHITE)]); // Concatenate all of the item values as a 2-D array
 
         sheet.getRange(4, 1, MAX_NUM_ITEMS, 8).clearContent().setBackground('white').setFontColor('black').setBorder(true, true, true, true, false, false)
-          .offset(0, 0, numItems, 6)
+          .offset(0, 0, numItems, 7)
             .setFontFamily('Arial').setFontWeight('bold').setFontSize(10).setHorizontalAlignments(horizontalAlignments).setBackgrounds(colours).setValues(items)
-          .offset(numSkusNotFound, 0, numSkusFound, 6).activate()
+          .offset(numSkusNotFound, 0, numSkusFound, 7).activate()
       }
       else // All SKUs were succefully found
       {
         const numItems = skus.length
-        const horizontalAlignments = new Array(numItems).fill(['center', 'left', 'center', 'center', 'center', 'center'])
+        const horizontalAlignments = new Array(numItems).fill(['center', 'left', 'center', 'center', 'center', 'center', 'center'])
 
-        sheet.getRange(4, 1, MAX_NUM_ITEMS, 8).clearContent().setBackground('white').setFontColor('black').offset(0, 0, numItems, 6)
+        sheet.getRange(4, 1, MAX_NUM_ITEMS, 8).clearContent().setBackground('white').setFontColor('black').offset(0, 0, numItems, 7)
           .setFontFamily('Arial').setFontWeight('bold').setFontSize(10).setHorizontalAlignments(horizontalAlignments).setValues(skus).activate()
       }
     }
