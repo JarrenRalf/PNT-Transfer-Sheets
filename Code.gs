@@ -217,30 +217,60 @@ function addToInflowPickList()
     return acc;
   }, {})).map(descrip => descrip[0])
 
-  // Find the first row and last row in the the set of all active ranges
-  for (var r = 0; r < activeRanges.length; r++)
+  if (activeSheet.getSheetName() === 'Item Search')
   {
-     firstRows[r] = activeRanges[r].getRow();
-      lastRows[r] = activeRanges[r].getLastRow();
-    itemValues[r] = activeSheet.getSheetValues(firstRows[r], 2, lastRows[r] - firstRows[r] + 1, 6);
-  }
-  
-  const     row = Math.min(...firstRows); // This is the smallest starting row number out of all active ranges
-  const lastRow = Math.max( ...lastRows); // This is the largest     final row number out of all active ranges
-  const itemVals = [].concat.apply([], itemValues).map(item => ['newRichmondPick', 'Richmond PNT', inflowData.find(description => description === item[0]), '', item[5]])
-                                                  .filter(itemNotFound => itemNotFound[1] != null)
+    // Find the first row and last row in the the set of all active ranges
+    for (var r = 0; r < activeRanges.length; r++)
+    {
+      firstRows[r] = activeRanges[r].getRow();
+        lastRows[r] = activeRanges[r].getLastRow();
+      itemValues[r] = activeSheet.getSheetValues(firstRows[r], 2, lastRows[r] - firstRows[r] + 1, 6);
+    }
+    
+    const     row = Math.min(...firstRows); // This is the smallest starting row number out of all active ranges
+    const lastRow = Math.max( ...lastRows); // This is the largest     final row number out of all active ranges
+    const itemVals = [].concat.apply([], itemValues).map(item => ['newRichmondPick', 'Richmond PNT', inflowData.find(description => description === item[0]), '', item[5]])
+                                                    .filter(itemNotFound => itemNotFound[2] != null)
 
-  if (row > 3 && lastRow <= activeSheet.getLastRow())
-  {
-    const numItems = itemVals.length;
+    if (row > 3 && lastRow <= activeSheet.getLastRow())
+    {
+      const numItems = itemVals.length;
 
-    if (numItems !== 0)
-      sheet.getRange(sheet.getLastRow() + 1, 1, numItems, 5).setValues(itemVals).offset(0, 3, numItems, 1).activate()
+      if (numItems !== 0)
+        sheet.getRange(sheet.getLastRow() + 1, 1, numItems, 5).setValues(itemVals).offset(0, 3, numItems, 1).activate()
+      else
+        SpreadsheetApp.getUi().alert('Your current selection(s) can\'t be placed on an inFlow picklist due to ambiguity of the Adagio description(s).');
+    }
     else
-      SpreadsheetApp.getUi().alert('Your current selection(s) can\'t be placed on an inFlow picklist due to ambiguity of the Adagio description(s).');
+      SpreadsheetApp.getUi().alert('Please select an item from the list.');
   }
-  else
-    SpreadsheetApp.getUi().alert('Please select an item from the list.');
+  else if (activeSheet.getSheetName() === 'Suggested inFlowPick')
+  {
+    // Find the first row and last row in the the set of all active ranges
+    for (var r = 0; r < activeRanges.length; r++)
+    {
+      firstRows[r] = activeRanges[r].getRow();
+        lastRows[r] = activeRanges[r].getLastRow();
+      itemValues[r] = activeSheet.getSheetValues(firstRows[r], 1, lastRows[r] - firstRows[r] + 1, 3);
+    }
+    
+    const     row = Math.min(...firstRows); // This is the smallest starting row number out of all active ranges
+    const lastRow = Math.max( ...lastRows); // This is the largest     final row number out of all active ranges
+    const itemVals = [].concat.apply([], itemValues).map(item => ['newSuggestedPick', 'Richmond PNT', inflowData.find(description => description === item[0]), item[1], item[2]])
+                                                    .filter(itemNotFound => itemNotFound[2] != null)
+
+    if (row > 1 && lastRow <= activeSheet.getLastRow())
+    {
+      const numItems = itemVals.length;
+
+      if (numItems !== 0)
+        sheet.getRange(sheet.getLastRow() + 1, 1, numItems, 5).setValues(itemVals).offset(0, 3, numItems, 1).activate()
+      else
+        SpreadsheetApp.getUi().alert('Your current selection(s) can\'t be placed on an inFlow picklist due to ambiguity of the Adagio description(s).');
+    }
+    else
+      SpreadsheetApp.getUi().alert('Please select an item from the list.');
+  }
 }
 
 /**
@@ -1675,6 +1705,51 @@ function formatActiveSheet()
   const spreadsheet = SpreadsheetApp.getActive();
   const sheetArray = [spreadsheet.getActiveSheet()];
   applyFullSpreadsheetFormatting(spreadsheet, sheetArray);
+}
+
+/**
+ * This function generates a list of items in the inFlow inventory system that based on the corresponding Adagio inventory values, should be picked and 
+ * brought to Moncton street.
+ * 
+ * @author Jarren Ralf
+ */
+function generateSuggestedInflowPick()
+{
+  const spreadsheet = SpreadsheetApp.getActive();
+  const suggestedValuesSheet = spreadsheet.getSheetByName("Moncton's inFlow Item Quantities");
+  const suggestInflowPickSheet = spreadsheet.getSheetByName('Suggested inFlowPick');
+  const suggestedValues = suggestedValuesSheet.getSheetValues(2, 1, suggestedValuesSheet.getLastRow() - 1, 2);
+  const inventorySheet = spreadsheet.getSheetByName("INVENTORY");
+  
+  const output = inventorySheet.getSheetValues(8, 2, inventorySheet.getLastRow() - 7, 6).map(e => {
+
+    if (isNotBlank(e[5]) && Number(e[2]) >= Number(e[5])) // Trites Inventory Column is not blank and the Adagio inventory is greater than or equal to inFlow inventory 
+    {
+      for (var i = 0; i < suggestedValues.length; i++)
+      {
+        if (suggestedValues[i][0] == e[0]) // Match the SKUs of the suggestValues list and the available inFlow inventory
+        {
+          const monctonStock = Number(e[2] - e[5]);
+
+          if (monctonStock < Number(suggestedValues[i][1])) // Moncton stock is less than the suggest amount for Moncton
+          {
+            if (Number(suggestedValues[i][1]) >= Number(e[5])) // The suggest inventory amount is greater than what we have in Trites
+              return [e[0], e[5], e[5], monctonStock, e[2]] // Bring back ALL trties stock
+            else
+              return [e[0], suggestedValues[i][1], e[5], monctonStock, e[2]] // Bring back just the suggested amount
+          }
+        }
+      }
+    }
+
+    return false
+  }).filter(f => f)
+
+  const numItems = output.length;
+  const range = suggestInflowPickSheet.getRange(2, 1, suggestInflowPickSheet.getMaxRows(), 5).clearContent()
+  
+  if (numItems > 0)
+    range.offset(0, 0, output.length, 5).setValues(output)
 }
 
 /**
