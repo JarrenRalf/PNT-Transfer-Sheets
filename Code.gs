@@ -136,14 +136,8 @@ function addItemsToUpcData()
   {
     const startRow = upcDatabaseSheet.getLastRow() + 1; // The bottom of the list
     copySelectedValues(upcDatabaseSheet, startRow, NUM_COLS, 'upc', false, [manAddedUPCsSheet]); // Move items to UPC Database and the Manually Added UPCs
-
-    if (sheet.getSheetName() === 'Item Search')
-    {
-      const row = sheet.getActiveRange().getRow();
-      populateManualScan(spreadsheet, sheet, row);
-    }
-    else
-      spreadsheet.getSheetByName("Manual Scan").getRange(1, 1).activate();
+    const row = sheet.getActiveRange().getRow();
+    populateManualScan(spreadsheet, sheet, row);
   }
 }
 
@@ -534,7 +528,7 @@ function applyFullSpreadsheetFormatting(spreadsheet, sheets)
       for (var r = 0; r < numHeaders; r++)
         sheets[j].setRowHeightsForced(r + 1, 1, [45, 45, 2][r]);
       for (var c = 0; c < lastCol; c++)
-        sheets[j].setColumnWidth(c + 1, [900, 80, 80, 500][c]);
+        sheets[j].setColumnWidth(c + 1, [900, 80, 80, 500, 130][c]);
 
 
       if (sheetNames[j] === "Manual Counts")
@@ -542,10 +536,10 @@ function applyFullSpreadsheetFormatting(spreadsheet, sheets)
         spreadsheet.setNamedRange('Completed_ManualCounts', sheets[j].getRange('B1'));
         spreadsheet.setNamedRange('Progress_ManualCounts', sheets[j].getRange('B3'));
         spreadsheet.setNamedRange('Remaining_ManualCounts', sheets[j].getRange('C1'));
-        headerValues = [[  Store_Name + ' Manual Counts', '=COUNTA($C$4:$C)', '=COUNTA($A$4:$A)-Completed_ManualCounts', ''], 
-                        ['Sku# - Description - Category - UoM', 'Current Count', 'New Count', 'Running Sum'], 
-                        ['', '=Completed_ManualCounts&\"/\"&(Completed_ManualCounts + Remaining_ManualCounts)', '', '']];
-        sheets[j].hideColumns(4);
+        headerValues = [[  Store_Name + ' Manual Counts', '=COUNTA($C$4:$C)', '=COUNTA($A$4:$A)-Completed_ManualCounts', 'Scanning Data', ''], 
+                        ['Sku# - Description - Category - UoM', 'Current Count', 'New Count', 'Running Sum', 'Last Scan Time (ms)'], 
+                        ['', '=Completed_ManualCounts&\"/\"&(Completed_ManualCounts + Remaining_ManualCounts)', '', '', '']];
+        sheets[j].hideColumns(4, 2);
       }
       else
       {
@@ -2122,7 +2116,7 @@ function manualCounts_FromInfoCounts()
 
 /**
  * This function watches two cells and if the left one is edited then it searches the UPC Database for the upc value (the barcode that was scanned).
- * It then checks if the item is on the manual counts page and stores the relevant data in the left cell. If the rightr cell is edited, then the function
+ * It then checks if the item is on the manual counts page and stores the relevant data in the left cell. If the right cell is edited, then the function
  * uses the data in the left cell and moves the item over to the manual counts page with the updated quantity.
  * 
  * @param {Event Object}      e      : An instance of an event object that occurs when the spreadsheet is editted
@@ -2161,7 +2155,7 @@ function manualScan(e, spreadsheet, sheet)
       else // There are existing items on the manual counts page
       {
         const row = lastRow + 1;
-        const manualCountsValues = manualCountsPage.getSheetValues(4, 1, row - 4, 4);
+        const manualCountsValues = manualCountsPage.getSheetValues(4, 1, row - 4, 5);
 
         for (var i = upcDatabase.length - 1; i >= 1; i--) // Loop through the UPC values
         {
@@ -2171,10 +2165,34 @@ function manualScan(e, spreadsheet, sheet)
             {
               if (manualCountsValues[j][0] === upcDatabase[i][2]) // The description matches
               {
+                var countedSince = (new Date().getTime() - manualCountsValues[j][4])/(1000) // This is in seconds
+
+                if (countedSince < 60)
+                  countedSince = Math.floor(countedSince) + ' seconds ago'
+                else if (countedSince < 3600)
+                  countedSince = (Math.floor(countedSince/60) === 1) ? Math.floor(countedSince/60) +  ' minute ago' : Math.floor(countedSince/60) +  ' minutes ago'
+                else if (countedSince < 86400)
+                {
+                  var numHours = Math.floor(countedSince/3600);
+                  var numMinutes = Math.floor((countedSince - numHours*3600)/60);
+
+                  countedSince = (numHours === 1) ? numHours + ' hour ' + ((numMinutes === 0) ? 'ago' : (numMinutes === 1) ? numMinutes +  ' minute ago' : numMinutes +  ' minutes ago') : 
+                    numHours + ' hours ' + ((numMinutes === 0) ? 'ago' : (numMinutes === 1) ? numMinutes +  ' minute ago' : numMinutes +  ' minutes ago');
+                }
+                else
+                {
+                  var numDays = Math.floor(countedSince/86400);
+                  var numHours = Math.floor((countedSince - numDays*86400)/3600);
+
+                  countedSince = (numDays === 1) ? numDays + ' day ' + ((numHours === 0) ? 'ago' : (numHours === 1) ? numHours + ' hour ago' : numHours + ' hours ago') : 
+                    numDays + ' days ' + ((numHours === 0) ? 'ago' : (numHours === 1) ? numHours + ' hour ago' : numHours + ' hours ago');
+                }
+                  
                 barcodeInputRange.setValue(upcDatabase[i][2]  + '\nwas found on the Manual Counts page at line :\n' + (j + 4) 
                                                               + '\nCurrent Stock :\n' + upcDatabase[i][3] 
                                                               + '\nCurrent Manual Count :\n' + manualCountsValues[j][2] 
-                                                              + '\nCurrent Running Sum :\n' + manualCountsValues[j][3]);
+                                                              + '\nCurrent Running Sum :\n' + manualCountsValues[j][3]
+                                                              + '\nLast Counted :\n' + countedSince);
                 break; // Item was found on the manual counts page, therefore stop searching
               }
             }
@@ -2218,7 +2236,7 @@ function manualScan(e, spreadsheet, sheet)
         {
           if (item[1].split(' ')[0] === 'was') // The item was already on the manual counts page
           {
-            const range = manualCountsPage.getRange(item[2], 3, 1, 2);
+            const range = manualCountsPage.getRange(item[2], 3, 1, 3);
             const itemValues = range.getValues()
             const updatedCount = Number(itemValues[0][0]) + quantity;
             const runningSum = (isNotBlank(itemValues[0][1])) ? ((Math.sign(quantity) === 1 || Math.sign(quantity) === 0)  ? 
@@ -2227,18 +2245,19 @@ function manualScan(e, spreadsheet, sheet)
                                                                     ((isNotBlank(itemValues[0][0])) ? 
                                                                       String(itemValues[0][0]) + ' \+ ' + String(quantity) : 
                                                                       String(quantity));
-            range.setNumberFormats([['#.#', '@']]).setValues([[updatedCount, runningSum]])
+            range.setNumberFormats([['#.#', '@', '#']]).setValues([[updatedCount, runningSum, new Date().getTime()]])
             sheet.getRange(1, 1, 1, 2).setValues([[item[0]  + '\nwas found on the Manual Counts page at line :\n' + item[2] 
                                                             + '\nCurrent Stock :\n' + item[4] 
                                                             + '\nCurrent Manual Count :\n' + updatedCount 
-                                                            + '\nCurrent Running Sum :\n' + runningSum,
+                                                            + '\nCurrent Running Sum :\n' + runningSum
+                                                            + '\nLast Counted :\nNow',
                                                             '']]);
           }
           else
           {
             const lastRow = manualCountsPage.getLastRow();
             const row = (lastRow === 2) ? 4 : lastRow + 1;
-            manualCountsPage.getRange(row, 1, 1, 4).setNumberFormats([['@', '@', '#.#', '@']]).setValues([[item[0], item[4], quantity, '\'' + String(quantity)]])
+            manualCountsPage.getRange(row, 1, 1, 5).setNumberFormats([['@', '@', '#.#', '@', '#']]).setValues([[item[0], item[4], quantity, '\'' + String(quantity), new Date().getTime()]])
             applyFullRowFormatting(manualCountsPage, row, 1, 3)
             sheet.getRange(1, 1, 1, 2).setValues([[item[0]  + '\nwas added to the Manual Counts page at line :\n' + item[2] 
                                                             + '\nCurrent Stock :\n' + item[4] 
@@ -2601,43 +2620,30 @@ function moveToUpcDatabse()
 }
 
 /**
- * This function creates a list of all of the items that are 'On Demand'.
- * 
- * @author Jarren Ralf
- */
-function onDemand()
-{
-  const csvData = Utilities.parseCsv(DriveApp.getFilesByName("inventory.csv").next().getBlob().getDataAsString());
-  const header = csvData.shift(); // Remove the header
-  const onDemand = csvData.filter(item => item[10] === 'A' && item[11] === '').sort(sortByCategories) // Remove the inactive and NOT 'On Demand' items
-  const numRows = onDemand.unshift(header); // Add the header back to the top of the array
-  SpreadsheetApp.getActive().getSheetByName('On Demand Items').clearContents().getRange(1, 1, numRows, 12).setNumberFormat('@').setValues(onDemand)
-}
-
-/**
- * This function takes the information from the Item Search page and the user's recently scanned barcode in the created date column and it 
+ * This function takes the information from the Item Search or Manual Counts page and the user's recently scanned barcode in the created date column and it 
  * populates the Manual Scan page with the relevant data need to update the count of the particular item.
  * 
- * @param {Spreadsheet}       ss        : The active spreadsheet.
- * @param {Sheet}       itemSearchSheet : The Item Search sheet.
- * @param {Number}         rowNum       : The row number of the current item.
+ * @param {Spreadsheet}  ss    : The active spreadsheet.
+ * @param {Sheet}       sheet  : The active sheet.
+ * @param {Number}      rowNum : The row number of the current item.
  * @author Jarren Ralf
  */
-function populateManualScan(ss, itemSearchSheet, rowNum, newItemDescription)
+function populateManualScan(ss, sheet, rowNum, newItemDescription)
 {
   const barcodeInputRange = ss.getSheetByName('Manual Scan').getRange(1, 1);
   const manualCountsPage = ss.getSheetByName("Manual Counts");
-  var itemValues = itemSearchSheet.getSheetValues(rowNum, 2, 1, 3)[0]
+  const currentStock = (sheet.getSheetName() === 'Item Search') ? 2 : 1;
   const lastRow = manualCountsPage.getLastRow();
+  var itemValues = (sheet.getSheetName() === 'Item Search') ? sheet.getSheetValues(rowNum, 2, 1, 3)[0] : sheet.getSheetValues(rowNum, 1, 1, 2)[0];
 
   if (newItemDescription != null)
   {
     itemValues[0] = newItemDescription;
-    itemValues[2] = '';
+    itemValues[currentStock] = '';
   }
 
   if (lastRow <= 3) // There are no items on the manual counts page
-    barcodeInputRange.setValue(itemValues[0] + '\nwill be added to the Manual Counts page at line :\n' + 4 + '\nCurrent Stock :\n' + itemValues[2]);
+    barcodeInputRange.setValue(itemValues[0] + '\nwill be added to the Manual Counts page at line :\n' + 4 + '\nCurrent Stock :\n' + itemValues[currentStock]);
   else // There are existing items on the manual counts page
   {
     const row = lastRow + 1;
@@ -2648,7 +2654,7 @@ function populateManualScan(ss, itemSearchSheet, rowNum, newItemDescription)
       if (manualCountsValues[j][0] === itemValues[0]) // The description matches
       {
         barcodeInputRange.setValue(itemValues[0]  + '\nwas found on the Manual Counts page at line :\n' + (j + 4) 
-                                                      + '\nCurrent Stock :\n' + itemValues[2] 
+                                                      + '\nCurrent Stock :\n' + itemValues[currentStock] 
                                                       + '\nCurrent Manual Count :\n' + manualCountsValues[j][2] 
                                                       + '\nCurrent Running Sum :\n' + manualCountsValues[j][3]);
         break; // Item was found on the manual counts page, therefore stop searching
@@ -2656,7 +2662,7 @@ function populateManualScan(ss, itemSearchSheet, rowNum, newItemDescription)
     }
 
     if (j === manualCountsValues.length) // Item was not found on the manual counts page
-      barcodeInputRange.setValue(itemValues[0] + '\nwill be added to the Manual Counts page at line :\n' + row + '\nCurrent Stock :\n' + itemValues[2]);
+      barcodeInputRange.setValue(itemValues[0] + '\nwill be added to the Manual Counts page at line :\n' + row + '\nCurrent Stock :\n' + itemValues[currentStock]);
   }
 
   barcodeInputRange.offset(0, 1).activate();
@@ -3223,9 +3229,6 @@ function search(e, spreadsheet, sheet)
                 secondOutput.splice(MAX_NUM_ITEMS); // Slice off all the entries after MAX_NUM_ITEMS
                 fontColours.splice(MAX_NUM_ITEMS);
                 backgroundColours.splice(MAX_NUM_ITEMS);
-                Logger.log(backgroundColours)
-                Logger.log(fontColours)
-                Logger.log(secondOutput)
                 itemSearchFullRange.setBackgrounds(backgroundColours).setFontColors(fontColours).setValues(secondOutput);
               }
               else
