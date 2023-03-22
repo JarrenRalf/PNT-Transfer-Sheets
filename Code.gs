@@ -1152,7 +1152,11 @@ function calculateGoodFriday(year)
  */
 function clearInflowPickList()
 {
-  SpreadsheetApp.getActiveSheet().clearContents().getRange(1, 1, 1, 5).setValues([['Inflow Number', 'Customer Name', 'Item', 'Order Quantity', 'Trites Stock']])
+  const sheet = SpreadsheetApp.getActiveSheet();
+  const numRows = sheet.getLastRow() - 2
+
+  if (numRows > 0)
+    SpreadsheetApp.getActiveSheet().getRange(3, 1, numRows, 5).clearContent()
 }
 
 /**
