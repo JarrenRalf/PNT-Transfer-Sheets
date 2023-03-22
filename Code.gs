@@ -53,7 +53,7 @@ function doGet(e)
 
 const inflow_conversions = {
   '10010021FT - WEB: 210/60x3-1/4"X100md X200FM Body #21 -  - Twisted Tarred Nylon - FOOT': 1200,
-  '10100027 - WEB: 210/27x1-1/8"x200MDx105FMx235# -  - Twisted Tarred Nylon - POUND': 630, 
+  '10100027 - WEB: 210/27x1-1/8"x200MDx105FMx235# -  - Twisted Tarred Nylon - POUND': 235, 
   '101021027118 - WEB: 210/27x1-1/8"x100MDx 105FMS -  - Twisted Tarred Nylon - POUND': 226, 
   '10110096 - WEB: 210/96 (6x16) x3"x100MDx50FMx230lbs -  - Cargo/Barrier - POUND': 230, 
   '10120495FOOT - WEB: 210/224x3"x100MDxfoot ) #14x16 -  - Braided Tarred Nylon - FOOT': 150, 
@@ -903,6 +903,41 @@ function applyFullSpreadsheetFormatting(spreadsheet, sheets)
           .setFontColor('black').setBackground('white').setVerticalAlignment('middle').setHorizontalAlignment('center').setWrapStrategy(SpreadsheetApp.WrapStrategy.WRAP) :
         sheets[j].getRange(1, 1).setNumberFormat('@').setFontSize(25).setFontLine('none').setFontStyle('none').setFontWeight('normal').setFontFamily('Arial').setFontColor('black')
           .setBackground('white').setVerticalAlignment('middle').setHorizontalAlignment('center').setWrapStrategy(SpreadsheetApp.WrapStrategy.WRAP);
+    else if (sheetNames[j] === "inFlowPick" || sheetNames[j] === "Suggested inFlowPick" || sheetNames[j] === "Moncton's inFlow Item Quantities")
+    {
+      numHeaders = 1;
+      rowStart = numHeaders + 1;
+       maxRow = sheets[j].getMaxRows();
+      lastRow = sheets[j].getLastRow();
+      lastCol = sheets[j].getMaxColumns();
+      numRows = lastRow - numHeaders;
+      headerRange = sheets[j].getRange(1, 1, numHeaders, lastCol);
+
+      headerRange.setFontLine('none').setFontWeight('bold').setFontStyle('normal').setFontFamily('Arial').setFontColor('white').setFontSize(16)
+        .setWrap(true).setNumberFormat('@').setVerticalAlignment('middle').setHorizontalAlignment('center').setBackground('#f1c232')
+
+      if (sheetNames[j] === "Suggested inFlowPick")
+      {
+        var richTextValue = SpreadsheetApp.newRichTextValue().setText('Adagio Quantity (Trites + Moncton)')
+          .setTextStyle(0, 16, SpreadsheetApp.newTextStyle().setFontSize(16).build())
+          .setTextStyle(16, 34, SpreadsheetApp.newTextStyle().setFontSize(14).build())
+          .build()
+        headerRange.offset(0, 4, 1, 1).setRichTextValues([[richTextValue]])
+      }
+      else if (sheetNames[j] === "Moncton's inFlow Item Quantities")
+      {
+        var richTextValue = SpreadsheetApp.newRichTextValue().setText("Item\n(Based On: Moncton's inFlow Item Quantities Sheet)")
+          .setTextStyle(0, 4, SpreadsheetApp.newTextStyle().setFontSize(16).build())
+          .setTextStyle(4, 55, SpreadsheetApp.newTextStyle().setFontSize(14).build())
+          .build()
+        headerRange.offset(0, 0, 1, 1).setRichTextValues([[richTextValue]])
+      }
+
+      // Prepare and set all of the dataRange values and formats
+      dataRange = sheets[j].getRange(rowStart, 1, numRows, lastCol);
+      dataRange.setFontSize(10).setFontLine('none').setFontStyle('normal').setFontFamily('Arial').setFontColor('black')
+        .setBackground('white').setVerticalAlignment('middle').setWrapStrategy(SpreadsheetApp.WrapStrategy.CLIP)
+    }
     else 
       sheets[j].hideSheet()
   }
@@ -1718,8 +1753,27 @@ function generateSuggestedInflowPick()
   const spreadsheet = SpreadsheetApp.getActive();
   const suggestedValuesSheet = spreadsheet.getSheetByName("Moncton's inFlow Item Quantities");
   const suggestInflowPickSheet = spreadsheet.getSheetByName('Suggested inFlowPick');
-  const suggestedValues = suggestedValuesSheet.getSheetValues(2, 1, suggestedValuesSheet.getLastRow() - 1, 2);
+  const numSuggestedItems = suggestedValuesSheet.getLastRow() - 1;
+  const suggestedValues = suggestedValuesSheet.getSheetValues(2, 1, numSuggestedItems, 3);
   const inventorySheet = spreadsheet.getSheetByName("INVENTORY");
+
+  Utilities.parseCsv(DriveApp.getFilesByName("inFlow_StockLevels.csv").next().getBlob().getDataAsString()).map(item =>{
+    if (item[0].split(" - ").length > 4) // If there are more than 4 "space-dash-space" strings within the inFlow description, then that item is recognized in Adagio 
+    {
+      for (var i = 0; i < suggestedValues.length; i++)
+        if (suggestedValues[i][0] == item[0]) // The ith item of the suggested inFlowPick page was found in the inFlow csv, therefore break the for loop
+          break;
+
+      if (i === suggestedValues.length)
+        suggestedValues.push([item[0], '']) // If there is an item in inFlow but not on the suggested inFlowPick page, then add it
+    }
+  })
+
+  if (suggestedValues.length > numSuggestedItems) // Items from the inFlow csv have been added to the suggested inFlowPick page
+  {
+    suggestedValues.sort((a, b) => a[0].localeCompare(b[0])); // Sort the items by the description
+    suggestedValuesSheet.getRange(2, 1, suggestedValues.length, 3).setValues(suggestedValues)
+  }
   
   const output = inventorySheet.getSheetValues(8, 2, inventorySheet.getLastRow() - 7, 6).map(e => {
 
@@ -1729,27 +1783,42 @@ function generateSuggestedInflowPick()
       {
         if (suggestedValues[i][0] == e[0]) // Match the SKUs of the suggestValues list and the available inFlow inventory
         {
-          const monctonStock = Number(e[2] - e[5]);
+          const monctonStock = Number(e[2] - e[5]); // The stock levels in moncton street (Adagio - inFlow)
 
-          if (monctonStock < Number(suggestedValues[i][1])) // Moncton stock is less than the suggest amount for Moncton
+          if (Number(e[2]) <= Number(suggestedValues[i][1])) // If Moncton plus Trites less than or equal to the suggested quantity, then bring back everything from Trites to Moncton
+            return [e[0], e[5], e[5], monctonStock, e[2]] // Bring back ALL trties stock
+          else if (monctonStock < Number(suggestedValues[i][1])) // Moncton stock is less than the suggest amount for Moncton
           {
-            if (Number(suggestedValues[i][1]) >= Number(e[5])) // The suggest inventory amount is greater than what we have in Trites
-              return [e[0], e[5], e[5], monctonStock, e[2]] // Bring back ALL trties stock
-            else
-              return [e[0], suggestedValues[i][1], e[5], monctonStock, e[2]] // Bring back just the suggested amount
+            const orderQty = Number(suggestedValues[i][1] - monctonStock);
+
+            if (suggestedValues[i][2]) // If we try and pick this item in multiples of 'n' items, such as picking bait jars by the case and hence as multiples of 100 pcs
+            {
+              if (orderQty > Number(suggestedValues[i][2])) // Order quantity is greater then the number of items that we want to bring this SKU back in mutiples of
+              {
+                const suggestedAmount = Math.floor(orderQty/Number(suggestedValues[i][2]))*Number(suggestedValues[i][2])
+
+                // If the suggestedAmount is greater than the Trites inventory, then bring back all of the Trites inventory, otherwise bring back the suggestedAmount
+                return (suggestedAmount >= Number(e[5])) ? [e[0], e[5], e[5], monctonStock, e[2]] : [e[0], suggestedAmount, e[5], monctonStock, e[2]]
+              }
+            }
+            else // If the orderQty is greater than the Trites inventory, then bring back all of the Trites inventory, otherwise bring back the orderQty
+              return (orderQty >= Number(e[5])) ? [e[0], e[5], e[5], monctonStock, e[2]] : [e[0], orderQty, e[5], monctonStock, e[2]]
           }
         }
       }
     }
 
-    return false
-  }).filter(f => f)
+    return false // Not an available item at Trites
+  }).filter(f => f) // Remove the unavailable items
 
   const numItems = output.length;
   const range = suggestInflowPickSheet.getRange(2, 1, suggestInflowPickSheet.getMaxRows(), 5).clearContent()
   
   if (numItems > 0)
+  {
+    output.sort((a,b) => a[3] - b[3]) // Sort list by the quantity in Moncton street because if Moncton has 0, then those items are the most important to pick from Trites
     range.offset(0, 0, output.length, 5).setValues(output)
+  }
 }
 
 /**
