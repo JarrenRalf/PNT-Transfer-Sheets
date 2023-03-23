@@ -783,7 +783,7 @@ function applyFullSpreadsheetFormatting(spreadsheet, sheets)
                                         ['right', 'right', 'right', 'right', 'right', 'right', 'center', 'center', 'center'],
                                         ['right', 'right', 'right', 'right', 'right', 'right', 'center', 'center', 'center'],
                                         new Array(lastCol).fill('center')];
-          sheets[j].getRange(1, 7, 4).setFormulas([ ['=COUNTIF(Received_Checkbox,FALSE)'],
+          sheets[j].getRange(3, 7, 4).setFormulas([ ['=COUNTIF(Received_Checkbox,FALSE)'],
                                                     ['=COUNTIF(ItemsToRichmond_Checkbox,FALSE)'],
                                                     ['=COUNTIF(Order_ActualCounts,">=0")'],
                                                     ['=COUNTIF(Shipped_ActualCounts,">=0")']]);
@@ -1710,7 +1710,7 @@ function downloadButton()
 }
 
 /**
- * This function takes the array of data on the inFlowPick page and it creates a csv file that can be download from the Browser.
+ * This function takes the array of data on the inFlowPick page and it creates a csv file that can be download from from the Browser.
  * 
  * @return Returns the csv text file that file be downloaded by the user.
  * @author Jarren Ralf
@@ -1732,43 +1732,6 @@ function downloardInflowPickList()
   }
 
   return ContentService.createTextOutput(csv).setMimeType(ContentService.MimeType.CSV).downloadAsFile('inFlow_SalesOrder.csv');
-}
-
-/**
- * This function takes the array of data on the Manual Counts page and it creates a csv file that can be download from the Browser.
- * 
- * @return Returns the csv text file that file be downloaded by the user.
- * @author Jarren Ralf
- */
-function downloardInflowStockLevels()
-{
-  const sheet = SpreadsheetApp.getActive().getSheetByName('Manual Counts');
-  const data = [];
-  var loc, qty, i;
-
-  sheet.getSheetValues(4, 1, sheet.getLastRow() - 3, sheet.getLastColumn()).map(item => {
-    loc = item[5].split('\n')
-    qty = item[6].split('\n')
-
-    if (loc.length === qty.length) // Make sure there is a location for every quantity and vice versa
-      for (i = 0; i < loc.length; i++) // Loop through the number of inflow locations
-        if (isNotBlank(loc[i]) && isNotBlank(qty)) // Do not add the data to the csv file if either the location or the quantity is blank
-          data.push([item[0], loc[i], qty[i]]) //
-
-  })
-
-  for (var row = 0, csv = "Item,Location,Quantity\r\n"; row < data.length; row++)
-  {
-    for (var col = 0; col < data[row].length; col++)
-    {
-      if (data[row][col].toString().indexOf(",") != - 1)
-        data[row][col] = "\"" + data[row][col] + "\"";
-    }
-
-    csv += (row < data.length - 1) ? data[row].join(",") + "\r\n" : data[row];
-  }
-
-  return ContentService.createTextOutput(csv).setMimeType(ContentService.MimeType.CSV).downloadAsFile('inFlow_StockLevels.csv');
 }
 
 /**
@@ -4160,9 +4123,7 @@ function warning(e, spreadsheet, sheet, sheetName)
       {
         if (userHasNotPressedDelete(e.value)) // New value is NOT blank
         {
-          const valueSplit = e.value.toString().split(' ');
-
-          if (isNumber(e.value)) // Not investigated //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+          if (isNumber(e.value))
           {
             if (isNumber(e.oldValue))
             {
@@ -4188,98 +4149,48 @@ function warning(e, spreadsheet, sheet, sheetName)
                 runningSumRange.setValue(Math.round(e.value).toString());
             }
           }
-          else if (valueSplit[0] === 'a') // The number is preceded by the letter 'a' and a space, in order to trigger an "add" operation
+          else if (e.value.toString().split(' ', 1)[0] === 'a') // The number is preceded by the letter 'a' and a space, in order to trigger an "add" operation
           {
-            const newCountDataRange = sheet.getRange(row, 3, 1, 2); // Not investigated ////////////////////////////////////////////////////////////////////////////////////////////////////////
-            var newCountValues = newCountDataRange.getValues()
-            newCountValues[0][0] = valueSplit[1]
+            const newCountAndSumRange = sheet.getRange(row, 3, 1, 2);
+            var newCountAndSumValue = newCountAndSumRange.getValues()
+            newCountAndSumValue[0][0] = e.value.toString().split(' ')[1]
 
-            if (isNumber(newCountValues[0][0])) // New Count is a number
+            if (isNumber(newCountAndSumValue[0][0])) // New Count is a number
             {
               if (isNumber(e.oldValue))
               {
-                if (isNotBlank(newCountValues[0][1]))
-                  newCountDataRange.setNumberFormat('@').setValues([[parseInt(e.oldValue) + parseInt(newCountValues[0][0]), 
-                    newCountValues[0][1].toString() + ' + ' + newCountValues[0][0].toString()]])
+                if (isNotBlank(newCountAndSumValue[0][1]))
+                  newCountAndSumRange.setNumberFormat('@').setValues([[parseInt(e.oldValue) + parseInt(newCountAndSumValue[0][0]), 
+                    newCountAndSumValue[0][1].toString() + ' + ' + newCountAndSumValue[0][0].toString()]])
 
                 else
-                  newCountDataRange.setNumberFormat('@').setValues([[parseInt(e.oldValue) + parseInt(newCountValues[0][0]), 
-                    parseInt(e.oldValue).toString() + ' + ' + newCountValues[0][0].toString()]])
+                  newCountAndSumRange.setNumberFormat('@').setValues([[parseInt(e.oldValue) + parseInt(newCountAndSumValue[0][0]), 
+                    parseInt(e.oldValue).toString() + ' + ' + newCountAndSumValue[0][0].toString()]])
               }
               else
               {
-                if (isNotBlank(newCountValues[0][1]))
-                  newCountDataRange.setNumberFormat('@').setValues([[newCountValues[0][0], 
-                    newCountValues[0][1].toString() + ' + ' + NaN.toString() + ' + ' + newCountValues[0][0].toString()]])
+                if (isNotBlank(newCountAndSumValue[0][1]))
+                  newCountAndSumRange.setNumberFormat('@').setValues([[newCountAndSumValue[0][0], 
+                    newCountAndSumValue[0][1].toString() + ' + ' + NaN.toString() + ' + ' + newCountAndSumValue[0][0].toString()]])
                   
                 else
-                  newCountDataRange.setNumberFormat('@').setValues([[newCountValues[0][0], newCountValues[0][0].toString()]])
+                  newCountAndSumRange.setNumberFormat('@').setValues([[newCountAndSumValue[0][0], newCountAndSumValue[0][0].toString()]])
               }
             }
             else
             {
               if (isNumber(e.oldValue))
               {
-                if (isNotBlank(newCountValues[0][1])) // Running Sum is not blank
-                  newCountDataRange.setNumberFormat('@').setValues([[Math.round(e.oldValue).toString(), newCountValues[0][1].toString() + ' + ' + NaN.toString()]])
+                if (isNotBlank(newCountAndSumValue[0][1])) // Running Sum is not blank
+                  newCountAndSumRange.setNumberFormat('@').setValues([[Math.round(e.oldValue).toString(), newCountAndSumValue[0][1].toString() + ' + ' + NaN.toString()]])
                 else
-                  newCountDataRange.setNumberFormat('@').setValues([[Math.round(e.oldValue).toString(), Math.round(e.oldValue).toString() + ' + ' + NaN.toString()]])
+                  newCountAndSumRange.setNumberFormat('@').setValues([[Math.round(e.oldValue).toString(), Math.round(e.oldValue).toString() + ' + ' + NaN.toString()]])
               }
 
               SpreadsheetApp.getUi().alert("The quantity you entered is not a number.")
             }
           }
-          else if (isNumber(valueSplit[0])) // The first split value is a number and the other is an inflow location
-          {
-            const newCountDataRange = sheet.getRange(row, 3, 1, 5);
-            var newCountValues = newCountDataRange.getValues()
-            newCountValues[0][0] = valueSplit[0]
-            valueSplit[1] = valueSplit[1].toUpperCase();
-
-            if (isNumber(e.oldValue))
-            {
-              if (isNotBlank(newCountValues[0][1]))
-                newCountDataRange.setNumberFormat('@').setValues([[parseInt(e.oldValue) + parseInt(newCountValues[0][0]), 
-                  newCountValues[0][1].toString() + ' + ' + newCountValues[0][0].toString(), new Date().getTime(), valueSplit[1], newCountValues[0][0]]])
-              else
-                newCountDataRange.setNumberFormat('@').setValues([[parseInt(e.oldValue) + parseInt(newCountValues[0][0]), 
-                  parseInt(e.oldValue).toString() + ' + ' + newCountValues[0][0].toString(), new Date().getTime(), valueSplit[1], newCountValues[0][0]]])
-            }
-            else
-            {
-              if (isNotBlank(newCountValues[0][1]))
-                newCountDataRange.setNumberFormat('@').setValues([[newCountValues[0][0], 
-                  newCountValues[0][1].toString() + ' + ' + NaN.toString() + ' + ' + newCountValues[0][0].toString(), new Date().getTime(), valueSplit[1], newCountValues[0][0]]])
-              else
-                newCountDataRange.setNumberFormat('@').setValues([[newCountValues[0][0], newCountValues[0][0].toString(), new Date().getTime(), valueSplit[1], newCountValues[0][0]]])
-            }
-          }
-          else if (isNumber(valueSplit[1])) // The first split value is an inflow location and the other is a number
-          {
-            const newCountDataRange = sheet.getRange(row, 3, 1, 5);
-            var newCountValues = newCountDataRange.getValues()
-            newCountValues[0][0] = valueSplit[1]
-            valueSplit[0] = valueSplit[1].toUpperCase();
-
-            if (isNumber(e.oldValue))
-            {
-              if (isNotBlank(newCountValues[0][1]))
-                newCountDataRange.setNumberFormat('@').setValues([[parseInt(e.oldValue) + parseInt(newCountValues[0][0]), 
-                  newCountValues[0][1].toString() + ' + ' + newCountValues[0][0].toString(), new Date().getTime(), valueSplit[0], newCountValues[0][0]]])
-              else
-                newCountDataRange.setNumberFormat('@').setValues([[parseInt(e.oldValue) + parseInt(newCountValues[0][0]), 
-                  parseInt(e.oldValue).toString() + ' + ' + newCountValues[0][0].toString(), new Date().getTime(), valueSplit[0], newCountValues[0][0]]])
-            }
-            else
-            {
-              if (isNotBlank(newCountValues[0][1]))
-                newCountDataRange.setNumberFormat('@').setValues([[newCountValues[0][0], 
-                  newCountValues[0][1].toString() + ' + ' + NaN.toString() + ' + ' + newCountValues[0][0].toString(), new Date().getTime(), valueSplit[0], newCountValues[0][0]]])
-              else
-                newCountDataRange.setNumberFormat('@').setValues([[newCountValues[0][0], newCountValues[0][0].toString(), new Date().getTime(), valueSplit[0], newCountValues[0][0]]])
-            }
-          }
-          else // New value is not a number // Not investigated ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+          else // New value is not a number
           {
             const runningSumRange = sheet.getRange(row, 4);
             const runningSumValue = runningSumRange.getValue().toString();
@@ -4296,24 +4207,10 @@ function warning(e, spreadsheet, sheet, sheetName)
           }
         }
         else // New value IS blank
-          sheet.getRange(row, 4, 1, 4).setValues([['', '', '', '']]); // Clear the running sum and last counted time
+          sheet.getRange(row, 4).setValue(''); // Clear the running sum
       }
       else
-      {
-        if (isNumber(e.value))
-          sheet.getRange(row, 4, 1, 2).setNumberFormats([['@', '#']]).setValues([[e.value, new Date().getTime()]])
-        else
-        {
-          const inflowData = e.value.split(' ');
-
-          if (isNumber(inflowData[0]))
-            sheet.getRange(row, 3, 1, 5).setNumberFormats([['#', '@', '#', '@', '#']]).setValues([[inflowData[0], inflowData[0], new Date().getTime(), inflowData[1].toUpperCase(), inflowData[0]]])
-          else if (isNumber(inflowData[1]))
-            sheet.getRange(row, 3, 1, 5).setNumberFormats([['#', '@', '#', '@', '#']]).setValues([[inflowData[1], inflowData[1], new Date().getTime(), inflowData[0].toUpperCase(), inflowData[1]]])
-          else
-            SpreadsheetApp.getUi().alert("The quantity you entered is not a number.");
-        }
-      }
+        (isNumber(e.value)) ? sheet.getRange(row, 4).setNumberFormat('@').setValue(e.value) : SpreadsheetApp.getUi().alert("The quantity you entered is not a number.");
     }
   }
 }
