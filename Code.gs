@@ -1902,7 +1902,7 @@ function generateSuggestedInflowPick()
           break;
 
       if (i === suggestedValues.length)
-        suggestedValues.push([item[0], '']) // If there is an item in inFlow but not on the suggested inFlowPick page, then add it
+        suggestedValues.push([item[0], '', '']) // If there is an item in inFlow but not on the suggested inFlowPick page, then add it
     }
   })
 
