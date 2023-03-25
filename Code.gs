@@ -215,23 +215,22 @@ function addNewItem()
  */
 function addToInflowPickList()
 {
-  const sheet = SpreadsheetApp.getActive().getSheetByName('inFlowPick');
+  const spreadsheet = SpreadsheetApp.getActive();
+  const sheet = (!isRichmondSpreadsheet(spreadsheet)) ? SpreadsheetApp.openById('1fSkuXdmLEjsGMWVSmaqbO_344VNBxTVjdXFL1y0lyHk').getSheetByName('inFlowPick') : 
+                                                                                                                    spreadsheet.getSheetByName('inFlowPick');
   const activeSheet = SpreadsheetApp.getActiveSheet();
   const activeRanges = activeSheet.getActiveRangeList().getRanges(); // The selected ranges on the item search sheet
   const firstRows = [], lastRows = [], itemValues = [];
 
-  const inflowData = Object.values(Utilities.parseCsv(DriveApp.getFilesByName("inFlow_StockLevels.csv").next().getBlob().getDataAsString()).reduce((acc, val) => {
-    if (acc[val[0]]) acc[val[0]][1] = Number(acc[val[0]][1]) + Number(val[4]); // Sum the quantities if item is in multiple locations
-    else if (val[0].split(" - ").length > 4) acc[val[0]] = [val[0], Number(val[4])]; // Add the item to the new list if it contains the typical google sheets item format with "space - space"
-    return acc;
-  }, {})).map(descrip => descrip[0])
+  const inflowData = Utilities.parseCsv(DriveApp.getFilesByName("inFlow_StockLevels.csv").next().getBlob().getDataAsString())
+    .filter(item => item[0].split(" - ").length > 4).map(descrip => descrip[0])
 
   if (activeSheet.getSheetName() === 'Item Search')
   {
     // Find the first row and last row in the the set of all active ranges
     for (var r = 0; r < activeRanges.length; r++)
     {
-      firstRows[r] = activeRanges[r].getRow();
+       firstRows[r] = activeRanges[r].getRow();
         lastRows[r] = activeRanges[r].getLastRow();
       itemValues[r] = activeSheet.getSheetValues(firstRows[r], 2, lastRows[r] - firstRows[r] + 1, 6);
     }
@@ -258,17 +257,56 @@ function addToInflowPickList()
     // Find the first row and last row in the the set of all active ranges
     for (var r = 0; r < activeRanges.length; r++)
     {
-      firstRows[r] = activeRanges[r].getRow();
+       firstRows[r] = activeRanges[r].getRow();
         lastRows[r] = activeRanges[r].getLastRow();
       itemValues[r] = activeSheet.getSheetValues(firstRows[r], 1, lastRows[r] - firstRows[r] + 1, 3);
     }
     
     const     row = Math.min(...firstRows); // This is the smallest starting row number out of all active ranges
     const lastRow = Math.max( ...lastRows); // This is the largest     final row number out of all active ranges
-    const itemVals = [].concat.apply([], itemValues).map(item => ['newSuggestedPick', 'Richmond PNT', inflowData.find(description => description === item[0]), item[1], item[2]])
+    const itemVals = [].concat.apply([], itemValues).map(item => ['newSuggestedPick', 'Richmond PNT', inflowData.find(description => description === item[2]), item[0], item[2]])
                                                     .filter(itemNotFound => itemNotFound[2] != null)
 
     if (row > 1 && lastRow <= activeSheet.getLastRow())
+    {
+      const numItems = itemVals.length;
+
+      if (numItems !== 0)
+        sheet.getRange(sheet.getLastRow() + 1, 1, numItems, 5).setValues(itemVals).offset(0, 3, numItems, 1).activate()
+      else
+        SpreadsheetApp.getUi().alert('Your current selection(s) can\'t be placed on an inFlow picklist due to ambiguity of the Adagio description(s).');
+    }
+    else
+      SpreadsheetApp.getUi().alert('Please select an item from the list.');
+  }
+  else if (activeSheet.getSheetName() === 'Order')
+  {
+    // Find the first row and last row in the the set of all active ranges
+    for (var r = 0; r < activeRanges.length; r++)
+    {
+       firstRows[r] = activeRanges[r].getRow();
+      itemValues[r] = activeSheet.getSheetValues(firstRows[r], 3, activeRanges[r].getLastRow() - firstRows[r] + 1, 3);
+    }
+
+    if (isParksvilleSpreadsheet(spreadsheet))
+    {
+      var inFlowOrderNumber = 'newParksvillePick';
+      var inFlowCustomerName = 'Parksville PNT';
+    }
+    else
+    {
+      var inFlowOrderNumber = 'newRupertPick';
+      var inFlowCustomerName = 'Rupert PNT';
+    }
+
+    const row = Math.min(...firstRows); // This is the smallest starting row number out of all active ranges
+    const inventorySheet = spreadsheet.getSheetByName('Inventory')
+    const tritesInventory = inventorySheet.getSheetValues(10, 6, inventorySheet.getLastRow() - 9, 2)//.filter(qty => qty[0] > 0);
+    const itemVals = [].concat.apply([], itemValues).map(item => [inFlowOrderNumber, inFlowCustomerName, inflowData.find(description => description === item[2]), item[0], 
+                                                    tritesInventory.find(tritesItem => tritesItem[1] === item[2].split(' - ', 1)[0])[0]])
+                                                    .filter(itemNotFound => itemNotFound[2] != null)
+    
+    if (row > 3)
     {
       const numItems = itemVals.length;
 
