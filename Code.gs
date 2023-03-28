@@ -217,7 +217,7 @@ function addNewItem()
 function addToInflowPickList(qty)
 {
   const spreadsheet = SpreadsheetApp.getActive();
-  const sheet = (!isRichmondSpreadsheet(spreadsheet)) ? SpreadsheetApp.openById('1Y8odQqvkpNjQUnmRxlxHtr6nmF0XGXoZOSCt1NmXlu8').getSheetByName('inFlowPick') : 
+  const sheet = (!isRichmondSpreadsheet(spreadsheet)) ? SpreadsheetApp.openById('1fSkuXdmLEjsGMWVSmaqbO_344VNBxTVjdXFL1y0lyHk').getSheetByName('inFlowPick') : 
                                                                                                                     spreadsheet.getSheetByName('inFlowPick');
   const activeSheet = SpreadsheetApp.getActiveSheet();
   const activeRanges = activeSheet.getActiveRangeList().getRanges(); // The selected ranges on the item search sheet
@@ -301,8 +301,6 @@ function addToInflowPickList(qty)
     }
 
     const row = Math.min(...firstRows); // This is the smallest starting row number out of all active ranges
-    //const inventorySheet = spreadsheet.getSheetByName('Inventory')
-    //const tritesInventory = inventorySheet.getSheetValues(10, 6, inventorySheet.getLastRow() - 9, 2)//.filter(qty => qty[0] > 0);
     const itemVals = [].concat.apply([], itemValues).map(item => [inFlowOrderNumber, inFlowCustomerName, 
                                                     inflowData.find(description => description === item[2]), (qty) ? qty : item[0], item[3].split('): ')[1]])
                                                     .filter(itemNotFound => itemNotFound[2] != null)
