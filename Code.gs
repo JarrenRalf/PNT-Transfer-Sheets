@@ -5,7 +5,7 @@
  * @param {Event Object} e : An instance of an event object that occurs when the spreadsheet is editted
  * @author Jarren Ralf
  */
-function onEdit(e)
+function installedOnEdit(e)
 {
   var spreadsheet = e.source;
   var sheet = spreadsheet.getActiveSheet(); // The active sheet that the onEdit event is occuring on
@@ -56,8 +56,7 @@ function doGet(e)
     else if (inFlowImportType === 'Barcodes')
       return downloadInflowBarcodes()
   }
-    
-  return HtmlService.createHtmlOutputFromFile('SuccessfulDownload');
+
 }
 
 const inflow_conversions = {
@@ -71,12 +70,13 @@ const inflow_conversions = {
   '10500030 - WEB: 3MM Braided  Knotted PE X4"X 100MD -  - Golf - POUND': 285,
   '10500128 - WEB: 210/128x2"x50MDx100FMx250LBS - North Pacific - Hockey/Lacrosse - POUND': 250,
   '10500144 - Black Cod Web 210/144 x 3in x 28md x 200 -  - Web - Miscellaneous - POUND': 375, 
-  '10500360 - WEB: #36 x 3"x34MD BROWN HD ACRYLIC -  - Golf - POUND': 1, 
+  '10500360 - WEB: #36 x 3"x34MD BROWN HD ACRYLIC -  - Golf - POUND': 300, 
   '10501001FT - WEB: PNT BLACKBIRD 15mm Sq x 2m deep -  - Golf - FOOT': 328.084, 
-  '10503000 - WEB: #30 x 2"x50MD BLACK HD ACRYLIC COAT -  - Golf - POUND': 1, 
+  '10503000 - WEB: #30 x 2"x50MD BLACK HD ACRYLIC COAT -  - Golf - POUND': 300, 
   "10503600 - VEXAR L36 WEB for CRAB CAGE  (100'/ROLL) -  - Golf - FOOT": 100,
   '10710010FT - WEB: 210/10x1/2"x800MDx100FMx235# RACHL -  - Raschel Knotless - FOOT': 600, 
-  '10782109038 - Rachel Black We 210/9 X 3/8" X465MDX 900 -  - Raschel Knotless - POUND': 235 
+  '10782109038 - Rachel Black We 210/9 X 3/8" X465MDX 900 -  - Raschel Knotless - POUND': 235,
+  '24400000 - BLACK RUBBER MATTING RIBBED    3 \' WIDE - ERIKS - Mats & Tables - FOOT': 225
 }
 
 /**
@@ -211,12 +211,13 @@ function addNewItem()
 /**
  * This function takes the user's selected items on the Item Search page of the Richmond spreadsheet and it places those items on the inFlowPick page.
  * 
+ * @param {Number} qty : If an argument is passed to this function, it is the quantity that a user is entering on the Order page for the inFlow pick list
  * @author Jarren Ralf
  */
-function addToInflowPickList()
+function addToInflowPickList(qty)
 {
   const spreadsheet = SpreadsheetApp.getActive();
-  const sheet = (!isRichmondSpreadsheet(spreadsheet)) ? SpreadsheetApp.openById('1fSkuXdmLEjsGMWVSmaqbO_344VNBxTVjdXFL1y0lyHk').getSheetByName('inFlowPick') : 
+  const sheet = (!isRichmondSpreadsheet(spreadsheet)) ? SpreadsheetApp.openById('1Y8odQqvkpNjQUnmRxlxHtr6nmF0XGXoZOSCt1NmXlu8').getSheetByName('inFlowPick') : 
                                                                                                                     spreadsheet.getSheetByName('inFlowPick');
   const activeSheet = SpreadsheetApp.getActiveSheet();
   const activeRanges = activeSheet.getActiveRangeList().getRanges(); // The selected ranges on the item search sheet
@@ -285,7 +286,7 @@ function addToInflowPickList()
     for (var r = 0; r < activeRanges.length; r++)
     {
        firstRows[r] = activeRanges[r].getRow();
-      itemValues[r] = activeSheet.getSheetValues(firstRows[r], 3, activeRanges[r].getLastRow() - firstRows[r] + 1, 3);
+      itemValues[r] = activeSheet.getSheetValues(firstRows[r], 3, activeRanges[r].getLastRow() - firstRows[r] + 1, 7);
     }
 
     if (isParksvilleSpreadsheet(spreadsheet))
@@ -300,10 +301,10 @@ function addToInflowPickList()
     }
 
     const row = Math.min(...firstRows); // This is the smallest starting row number out of all active ranges
-    const inventorySheet = spreadsheet.getSheetByName('Inventory')
-    const tritesInventory = inventorySheet.getSheetValues(10, 6, inventorySheet.getLastRow() - 9, 2)//.filter(qty => qty[0] > 0);
-    const itemVals = [].concat.apply([], itemValues).map(item => [inFlowOrderNumber, inFlowCustomerName, inflowData.find(description => description === item[2]), item[0], 
-                                                    tritesInventory.find(tritesItem => tritesItem[1] === item[2].split(' - ', 1)[0])[0]])
+    //const inventorySheet = spreadsheet.getSheetByName('Inventory')
+    //const tritesInventory = inventorySheet.getSheetValues(10, 6, inventorySheet.getLastRow() - 9, 2)//.filter(qty => qty[0] > 0);
+    const itemVals = [].concat.apply([], itemValues).map(item => [inFlowOrderNumber, inFlowCustomerName, 
+                                                    inflowData.find(description => description === item[2]), (qty) ? qty : item[0], item[3].split('): ')[1]])
                                                     .filter(itemNotFound => itemNotFound[2] != null)
     
     if (row > 3)
@@ -311,7 +312,10 @@ function addToInflowPickList()
       const numItems = itemVals.length;
 
       if (numItems !== 0)
+      {
         sheet.getRange(sheet.getLastRow() + 1, 1, numItems, 5).setValues(itemVals).offset(0, 3, numItems, 1).activate()
+        spreadsheet.toast('Item(s) added to inFlow Pick List on the Richmond sheet')
+      }
       else
         SpreadsheetApp.getUi().alert('Your current selection(s) can\'t be placed on an inFlow picklist due to ambiguity of the Adagio description(s).');
     }
@@ -986,14 +990,6 @@ function applyFullSpreadsheetFormatting(spreadsheet, sheets)
           .build()
         headerRange.offset(0, 4, 1, 1).setRichTextValues([[richTextValue]])
       }
-      else if (sheetNames[j] === "Moncton's inFlow Item Quantities")
-      {
-        var richTextValue = SpreadsheetApp.newRichTextValue().setText("Item\n(Based On: Moncton's inFlow Item Quantities Sheet)")
-          .setTextStyle(0, 4, SpreadsheetApp.newTextStyle().setFontSize(16).build())
-          .setTextStyle(4, 55, SpreadsheetApp.newTextStyle().setFontSize(14).build())
-          .build()
-        headerRange.offset(0, 0, 1, 1).setRichTextValues([[richTextValue]])
-      }
 
       // Prepare and set all of the dataRange values and formats
       dataRange = sheets[j].getRange(rowStart, 1, numRows, lastCol);
@@ -1498,8 +1494,10 @@ function copySelectedValues(sheet, startRow, numCols, qtyCol, isInfoCountsPage, 
       itemVals.map(u => u.splice(1, 1)); // Remove the column that contains the last counted on date
       numCols--;
     }
-    else if (isOrderPage || isItemsToRichPage) // Items that are being transfered from one location to another
-      itemVals.map(u => u.splice(2, 1, null)); // Replace the column that has the last counted date with a blank (the blank is where the notes column is)
+    else if (isOrderPage) // Items that are being transfered from one location to another
+      itemVals = itemVals.map(u => [u[0], u[1], (u[6] > 0) ? 'Trites Stock (As of Order Date): ' + u[6] : '', u[3]]); // Replace the column that has the last counted date with Trites Stock
+    else if (isItemsToRichPage) // Items that are being transfered from one location to another
+      itemVals.map(u => u.splice(2, 1, null)) // Replace the column that has the last counted date with a blank
     else if (isUpcPage)
     {
       const ui = SpreadsheetApp.getUi();
@@ -1624,7 +1622,7 @@ function copySelectedValues(sheet, startRow, numCols, qtyCol, isInfoCountsPage, 
       sheets[0].getRange(sheets[0].getLastRow() + 1, 1, numItems, numCols).setNumberFormat('@').setValues(upcTemporaryValues);
     }
 
-    sheet.getRange(startRow, startCol, numItems, numCols).setNumberFormat('@').setValues(itemVals); // Move the item values to the destination sheet
+    sheet.getRange(startRow, startCol, numItems, itemVals[0].length).setNumberFormat('@').setValues(itemVals); // Move the item values to the destination sheet
 
     if (!isInventoryPage && !isUpcPage) 
     {
@@ -1770,9 +1768,9 @@ function downloadButton(importType)
 {
   var htmlTemplate = HtmlService.createTemplateFromFile('DownloadButton')
   htmlTemplate.inFlowImportType = importType;
-  var html = htmlTemplate.evaluate().setWidth(250).setHeight(50)
+  var html = htmlTemplate.evaluate().setWidth(1).setHeight(1)
   
-  SpreadsheetApp.getUi().showModalDialog(html, 'Export');
+  SpreadsheetApp.getUi().showModalDialog(html, ' ');
 }
 
 /**
@@ -3015,6 +3013,16 @@ function moveRow(e, spreadsheet, sheet, sheetName)
         Browser.msgBox('Please don\'t edit this cell.');
       }
     }
+    else if (col == 9)
+    {
+      var qty = range.getValue().split(' ')
+
+      if (qty.length === 2 && qty[0] == 'tt' && isNotBlank(qty[1]) && isNumber(qty[1]))
+      {
+        range.setValue(qty[1])
+        addToInflowPickList(qty[1])
+      }
+    }
   }
   else if (value === undefined && col === 1) // A row might have been added by the user by clicking on the "Add" button on the botton of the sheet
   {
@@ -3192,7 +3200,7 @@ function print_X_Shipped()
 function richmondToStoreTransfers()
 {
   const QTY_COL  = 9;
-  const NUM_COLS = 4;
+  const NUM_COLS = 7;
   
   var orderSheet = SpreadsheetApp.getActive().getSheetByName("Order");
   var lastRow = orderSheet.getLastRow();
