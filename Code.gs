@@ -4289,7 +4289,7 @@ function updateSearchData()
 {
   const today = new Date();
   const spreadsheet = SpreadsheetApp.getActive();
-  const searchDataRng = (isRichmondSpreadsheet(spreadsheet)) ? spreadsheet.getSheetByName("INVENTORY").getRange('B9:C') : spreadsheet.getSheetByName("SearchData").getRange('B1:C');
+  const searchDataRng = (isRichmondSpreadsheet(spreadsheet)) ? spreadsheet.getSheetByName("INVENTORY").getRange('B7:C') : spreadsheet.getSheetByName("SearchData").getRange('B1:C');
   const searchData = searchDataRng.getValues();
   const numItems = searchData.length;
   const countLog = spreadsheet.getSheetByName("Count Log");
