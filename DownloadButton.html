@@ -1,9 +1,37 @@
 <!DOCTYPE html>
 <html>
-  <body>
-    <script>
-      const newWindow1 = window.open('https://script.google.com/macros/s/AKfycbwUEoeuzCNa76pjvJ3OOwXIA3LrLg6e2Vu40FmINknddhln7YBX5fGfXyFnT3YIH2CilQ/exec?inFlowImport=' + <?=inFlowImportType?>)
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <style>
+      .btn
+      {
+        background-color: DodgerBlue;
+        border: none;
+        color: white;
+        padding: 12px 30px;
+        cursor: pointer;
+        font-size: 20px;
+      }
+      /* Darker background on mouse-over */
+      .btn:hover
+      {
+        background-color: RoyalBlue;
+      }
+      .btn:active
+      {
+        background-color: Grey;
+      }
+    </style>
+  </head>
+  <script>
+    function downloadExportData()
+    { 
+      const newWindow1 = window.open('https://script.google.com/macros/s/AKfycbxrOt5UM4h63OplKtGUHLLIXAwKNanieSiIcawnUheYkumgRtCRLRjbsVJqvkXlBucOYg/exec?inFlowImport=' + <?=inFlowImportType?>)
       google.script.host.close()
+    }
   </script>
+  <body>
+    <button class="btn" onclick="downloadExportData()" style="width:100%"><i class="fa fa-download"></i> Download</button>
   </body>
 </html>

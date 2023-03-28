@@ -1770,9 +1770,9 @@ function downloadButton(importType)
 {
   var htmlTemplate = HtmlService.createTemplateFromFile('DownloadButton')
   htmlTemplate.inFlowImportType = importType;
-  var html = htmlTemplate.evaluate().setWidth(1).setHeight(1)
+  var html = htmlTemplate.evaluate().setWidth(250).setHeight(75)
   
-  SpreadsheetApp.getUi().showModalDialog(html, ' ');
+  SpreadsheetApp.getUi().showModalDialog(html, 'Export');
 }
 
 /**
