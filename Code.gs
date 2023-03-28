@@ -3016,7 +3016,7 @@ function moveRow(e, spreadsheet, sheet, sheetName)
     }
     else if (col == 9)
     {
-      var qty = range.getValue().split(' ')
+      var qty = range.getValue().toString().split(' ')
 
       if (qty.length === 2 && qty[0] == 'tt' && isNotBlank(qty[1]) && isNumber(qty[1]))
       {
