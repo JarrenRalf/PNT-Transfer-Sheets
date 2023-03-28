@@ -3016,9 +3016,9 @@ function moveRow(e, spreadsheet, sheet, sheetName)
     }
     else if (col == 9)
     {
-      var qty = range.getValue().toString().split(' ')
+      var qty = range.getValue().toString().toLowerCase().split(' ')
 
-      if (qty.length === 2 && qty[0] == 'tt' && isNotBlank(qty[1]) && isNumber(qty[1]))
+      if (qty.length === 2 && isNotBlank(qty[1]) && isNumber(qty[1]) && (qty[0] == 'tt' || qty[0] == 'ttt' || qty[0] == 'tit' || qty[0] == 'tits' || qty[0] == 'boob' || qty[0] == 'boobs'))
       {
         range.setValue(qty[1])
         addToInflowPickList(qty[1])
