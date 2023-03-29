@@ -341,8 +341,8 @@ function addToOppositeStoreShippedPage()
   // Find the first row and last row in the the set of all active ranges
   for (var r = 0; r < activeRanges.length; r++)
   {
-     firstRows.push(activeRanges[r].getRow());
-     numRows.push(activeRanges[r].getLastRow() - firstRows[r] + 1);
+    firstRows.push(activeRanges[r].getRow());
+    numRows.push(activeRanges[r].getLastRow() - firstRows[r] + 1);
     itemValues.push(activeSheet.getSheetValues(firstRows[r], 1, numRows[r], 6));
     backgroundColours.push(...activeSheet.getRange(firstRows[r], 1, numRows[r], 5).getBackgrounds().map(u => [u[0], 'white',  'white', 'white', 'white', u[4]]));
     richTextValues.push(...activeSheet.getRange(firstRows[r], 5, numRows[r]).getRichTextValues())
@@ -357,8 +357,18 @@ function addToOppositeStoreShippedPage()
     const itemVals = [].concat.apply([], itemValues).map(item => 
       [Utilities.formatDate(item[0], timeZone, 'dd MMM yyyy'), item[1], item[5], item[2], item[3], item[4], '', '', item[5], 'Carrier Not Assigned', shippedDate]
     )
-    const targetSpreadsheet = isParksvilleSpreadsheet(spreadsheet) ? SpreadsheetApp.openById('1cK1xrtJMeMbfQHrFc_TWUwCKlYzmkov0_zuBxO55iKM') :
-                                                                     SpreadsheetApp.openById('181NdJVJueFNLjWplRNsgNl0G-sEJVW3Oy4z9vzUFrfM') ;
+
+    if (isParksvilleSpreadsheet(spreadsheet))
+    {
+      var targetSpreadsheet = SpreadsheetApp.openById('1cK1xrtJMeMbfQHrFc_TWUwCKlYzmkov0_zuBxO55iKM');
+      var branch_location = 'Rupert'
+    }
+    else
+    {
+      var targetSpreadsheet = SpreadsheetApp.openById('181NdJVJueFNLjWplRNsgNl0G-sEJVW3Oy4z9vzUFrfM');
+      var branch_location = 'Parksville'
+    }
+
     const shippedPage = targetSpreadsheet.getSheetByName('Shipped')
     const row = shippedPage.getLastRow() + 1;
     const numRows = itemVals.length;
@@ -367,6 +377,7 @@ function addToOppositeStoreShippedPage()
     range.setValues(itemVals)
     applyFullRowFormatting(shippedPage, row, numRows, numCols)
     range.offset(0, 0, numRows, 6).setBackgrounds(backgroundColours).offset(0, 5, numRows, 1).setRichTextValues(richTextValues)
+    spreadsheet.toast('Item(s) have been added to the ' + branch_location + ' Shipped page.')
   }
   else
     SpreadsheetApp.getUi().alert('Please select an item from the list.');
