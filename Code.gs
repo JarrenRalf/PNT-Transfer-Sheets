@@ -326,6 +326,53 @@ function addToInflowPickList(qty)
 }
 
 /**
+ * This function moves selected items from the ItemsToRichmond sheet to the opposite stores Shipped page. This is in the event when we are shipping items from 
+ * Parksville to Rupert (or vice versa), but they are shipping to Moncton street first.
+ * 
+ * @author Jarren Ralf
+ */
+function addToOppositeStoreShippedPage()
+{
+  const spreadsheet = SpreadsheetApp.getActive()
+  const activeSheet = SpreadsheetApp.getActiveSheet();
+  const activeRanges = activeSheet.getActiveRangeList().getRanges(); // The selected ranges on the item search sheet
+  const firstRows = [], numRows = [], itemValues = [], backgroundColours = [], richTextValues = [];
+
+  // Find the first row and last row in the the set of all active ranges
+  for (var r = 0; r < activeRanges.length; r++)
+  {
+     firstRows.push(activeRanges[r].getRow());
+     numRows.push(activeRanges[r].getLastRow() - firstRows[r] + 1);
+    itemValues.push(activeSheet.getSheetValues(firstRows[r], 1, numRows[r], 6));
+    backgroundColours.push(...activeSheet.getRange(firstRows[r], 1, numRows[r], 5).getBackgrounds().map(u => [u[0], 'white',  'white', 'white', 'white', u[4]]));
+    richTextValues.push(...activeSheet.getRange(firstRows[r], 5, numRows[r]).getRichTextValues())
+  }
+
+  const row = Math.min(...firstRows); // This is the smallest starting row number out of all active ranges
+  
+  if (row > 3)
+  {
+    const timeZone = spreadsheet.getSpreadsheetTimeZone();
+    const shippedDate = Utilities.formatDate(new Date(), timeZone, 'dd MMM yyyy');
+    const itemVals = [].concat.apply([], itemValues).map(item => 
+      [Utilities.formatDate(item[0], timeZone, 'dd MMM yyyy'), item[1], item[5], item[2], item[3], item[4], '', '', item[5], 'Carrier Not Assigned', shippedDate]
+    )
+    const targetSpreadsheet = isParksvilleSpreadsheet(spreadsheet) ? SpreadsheetApp.openById('1cK1xrtJMeMbfQHrFc_TWUwCKlYzmkov0_zuBxO55iKM') :
+                                                                     SpreadsheetApp.openById('181NdJVJueFNLjWplRNsgNl0G-sEJVW3Oy4z9vzUFrfM') ;
+    const shippedPage = targetSpreadsheet.getSheetByName('Shipped')
+    const row = shippedPage.getLastRow() + 1;
+    const numRows = itemVals.length;
+    const numCols = 11;
+    const range = shippedPage.getRange(row, 1, numRows, numCols);
+    range.setValues(itemVals)
+    applyFullRowFormatting(shippedPage, row, numRows, numCols)
+    range.offset(0, 0, numRows, 6).setBackgrounds(backgroundColours).offset(0, 5, numRows, 1).setRichTextValues(richTextValues)
+  }
+  else
+    SpreadsheetApp.getUi().alert('Please select an item from the list.');
+}
+
+/**
  * Apply the proper formatting to the Order, Shipped, Received, ItemsToRichmond, Manual Counts, or InfoCounts page.
  *
  * @param {Sheet}   sheet  : The current sheet that needs a formatting adjustment
