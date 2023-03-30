@@ -3172,8 +3172,9 @@ function moveRow(e, spreadsheet, sheet, sheetName)
       {
         const dataValidationSheet = spreadsheet.getSheetByName("Data Validation");
         const lastRow = getLastRowSpecial(dataValidationSheet.getRange('C:C').getValues())
+        const isReceived = value.split(' ', 1)[0]
 
-        if (value == "Received") // The cell is set to "Received"  
+        if (isReceived == "Rec'd") // The cell is set to "Received"  
         {
           const dataValidation = dataValidationSheet.getSheetValues(1, 3, lastRow, 1); // These are all the data validation choices of carriers, etc.
           transferRow(sheet, spreadsheet.getSheetByName("Received"), row, rowValues, numCols, true, undefined, undefined, dataValidation, e);
