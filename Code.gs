@@ -2670,7 +2670,6 @@ function manualScan(e, spreadsheet, sheet)
         {
           const range = manualCountsPage.getRange(item[2], 3, 1, 3);
           const manualCountsValues = range.getValues()
-          manualCountsValues[0][0] = Number(manualCountsValues[0][0]) + upcCode;
           manualCountsValues[0][2] = new Date().getTime()
           manualCountsValues[0][1] = (isNotBlank(manualCountsValues[0][1])) ? ((Math.sign(upcCode) === 1 || Math.sign(upcCode) === 0)  ? 
                                                                               String(manualCountsValues[0][1]) + ' \+ ' + String(   upcCode)  : 
@@ -2678,6 +2677,7 @@ function manualScan(e, spreadsheet, sheet)
                                                                                 ((isNotBlank(manualCountsValues[0][0])) ? 
                                                                                   String(manualCountsValues[0][0]) + ' \+ ' + String(upcCode) : 
                                                                                   String(upcCode));
+          manualCountsValues[0][0] = Number(manualCountsValues[0][0]) + upcCode;
           range.setNumberFormats([['#.#', '@', '#']]).setValues(manualCountsValues)
           sheet.getRange(1, 1, 1, 2).setValues([[item[0]  + '\nwas found on the Manual Counts page at line :\n' + item[2] 
                                                           + '\nCurrent Stock :\n' + item[4] 
