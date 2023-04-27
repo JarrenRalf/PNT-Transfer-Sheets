@@ -1,3 +1,4 @@
+
 /**
  * This function handles all of the on edit events of the spreadsheet, specifically looking for rows that need to be moved to different sheets,
  * barcodes that are scanned on the Item Scan sheet, searches that are made, and formatting issues that need to be fixed.
@@ -25,7 +26,7 @@ function installedOnEdit(e)
     else if (sheetName === "Manual Scan" || sheetName === "Manual Scan2") // Check if a barcode has been scanned
       manualScan(e, spreadsheet, sheet)
     else if (sheetName === "Item Scan") // Check if a barcode has been scanned
-      itemScan(e, spreadsheet)
+      itemScan(e, spreadsheet, sheet)
   } 
   catch (err) 
   {
@@ -2368,7 +2369,7 @@ function isNotBlank(value)
  * @param {Spreadsheet}  spreadsheet : The spreadsheet that is being edited
  * @author Jarren Ralf
  */
-function itemScan(e, spreadsheet)
+function itemScan(e, spreadsheet, sheet)
 {
   if (userHasNotPressedDelete(e.value))
   {
