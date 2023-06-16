@@ -120,6 +120,11 @@
       {
         "menuName": "getPhysicalCounted_CountLog",
         "functionName": "getPhysicalCounted_CountLog"
+      },
+      {
+        "menuName": "addToInflowPickList",
+        "functionName": "addToInflowPickList",
+        "defaultShortcut": "Ctrl+Alt+Shift+2"
       }
     ]
   }

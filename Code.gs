@@ -3162,7 +3162,6 @@ function moveRow(e, spreadsheet, sheet, sheetName)
                   const richText = transferRow(sheet, shippedSheet, row, rowValues, numCols, false);
                   updateBO(rowRange,rowValues);
                   sheet.getRange(row, 6).setRichTextValue(richText);
-
                 }
                 else
                 {
@@ -3285,8 +3284,17 @@ function moveRow(e, spreadsheet, sheet, sheetName)
 
         if (isReceived == "Rec'd") // The cell is set to "Received"  
         {
-          const dataValidation = dataValidationSheet.getSheetValues(1, 3, lastRow, 1); // These are all the data validation choices of carriers, etc.
-          transferRow(sheet, spreadsheet.getSheetByName("Received"), row, rowValues, numCols, true, undefined, undefined, dataValidation, e);
+          if (shippedQty != 0)
+          {
+            const dataValidation = dataValidationSheet.getSheetValues(1, 3, lastRow, 1); // These are all the data validation choices of carriers, etc.
+            transferRow(sheet, spreadsheet.getSheetByName("Received"), row, rowValues, numCols, true, undefined, undefined, dataValidation, e);
+          }
+          else
+          {
+            rowValues[0][9] = e.oldValue;
+            rowRange.setValues(rowValues)
+            Browser.msgBox('You are unable to receive an item that has a shipped quantity of zero.')
+          }
         }
         else if (value == "Back to Order")
         {
@@ -3310,11 +3318,8 @@ function moveRow(e, spreadsheet, sheet, sheetName)
           }
         }
       }
-      else if (sheetName == "Received") // An edit is occuring on the Received sheet
-      {                               
-        if (value == "Back to Shipped") // The cell is set to "Back to Shipped"  
-          transferRow(sheet, shippedSheet, row, rowValues, numCols, true);
-      }
+      else if (sheetName == "Received" && value == "Back to Shipped") // An edit is occuring on the Received sheet 
+        transferRow(sheet, shippedSheet, row, rowValues, numCols, true);
     }
     else if (col == 11) // Shipped Date Column
     {
@@ -4431,6 +4436,7 @@ function transferRow(fromSheet, sheet, row, rowValues, numCols, isRowDeleted, ro
 
   sheet.getRange(destinationRow,  6).setRichTextValue(richText);                                   // Keep the notes rich text the same
   sheet.getRange(destinationRow, 10).setDataValidation(sheet.getRange(3, 10).getDataValidation()); // Set the correct data validation
+  
   if (isRowDeleted) 
   {
     if (fromSheetName === 'Shipped') // If we are on the shipped page, we need to check if a carrier banner needs to be deleted
