@@ -2089,28 +2089,33 @@ function generateSuggestedInflowPick()
  */
 function getCountedSinceString(lastScannedTime)
 {
-  const countedSince = (new Date().getTime() - lastScannedTime)/(1000) // This is in seconds
-
-  if (countedSince < 60) // Number of seconds in 1 minute
-    return Math.floor(countedSince) + ' seconds ago'
-  else if (countedSince < 3600) // Number of seconds in 1 hour
-    return (Math.floor(countedSince/60) === 1) ? Math.floor(countedSince/60) +  ' minute ago' : Math.floor(countedSince/60) +  ' minutes ago'
-  else if (countedSince < 86400) // Number of seconds in 24 hours
+  if (isNotBlank(lastScannedTime))
   {
-    const numHours = Math.floor(countedSince/3600);
-    const numMinutes = Math.floor((countedSince - numHours*3600)/60);
+    const countedSince = (new Date().getTime() - lastScannedTime)/(1000) // This is in seconds
 
-    return (numHours === 1) ? numHours + ' hour ' + ((numMinutes === 0) ? 'ago' : (numMinutes === 1) ? numMinutes +  ' minute ago' : numMinutes +  ' minutes ago') : 
-      numHours + ' hours ' + ((numMinutes === 0) ? 'ago' : (numMinutes === 1) ? numMinutes +  ' minute ago' : numMinutes +  ' minutes ago');
-  }
-  else // Greater than 24 hours
-  {
-    const numDays = Math.floor(countedSince/86400);
-    const numHours = Math.floor((countedSince - numDays*86400)/3600);
+    if (countedSince < 60) // Number of seconds in 1 minute
+      return Math.floor(countedSince) + ' seconds ago'
+    else if (countedSince < 3600) // Number of seconds in 1 hour
+      return (Math.floor(countedSince/60) === 1) ? Math.floor(countedSince/60) +  ' minute ago' : Math.floor(countedSince/60) +  ' minutes ago'
+    else if (countedSince < 86400) // Number of seconds in 24 hours
+    {
+      const numHours = Math.floor(countedSince/3600);
+      const numMinutes = Math.floor((countedSince - numHours*3600)/60);
 
-    return (numDays === 1) ? numDays + ' day ' + ((numHours === 0) ? 'ago' : (numHours === 1) ? numHours + ' hour ago' : numHours + ' hours ago') : 
-      numDays + ' days ' + ((numHours === 0) ? 'ago' : (numHours === 1) ? numHours + ' hour ago' : numHours + ' hours ago');
+      return (numHours === 1) ? numHours + ' hour ' + ((numMinutes === 0) ? 'ago' : (numMinutes === 1) ? numMinutes +  ' minute ago' : numMinutes +  ' minutes ago') : 
+        numHours + ' hours ' + ((numMinutes === 0) ? 'ago' : (numMinutes === 1) ? numMinutes +  ' minute ago' : numMinutes +  ' minutes ago');
+    }
+    else // Greater than 24 hours
+    {
+      const numDays = Math.floor(countedSince/86400);
+      const numHours = Math.floor((countedSince - numDays*86400)/3600);
+
+      return (numDays === 1) ? numDays + ' day ' + ((numHours === 0) ? 'ago' : (numHours === 1) ? numHours + ' hour ago' : numHours + ' hours ago') : 
+        numDays + ' days ' + ((numHours === 0) ? 'ago' : (numHours === 1) ? numHours + ' hour ago' : numHours + ' hours ago');
+    }
   }
+  else
+    return '1 second ago'
 }
 
 /**
@@ -2367,6 +2372,7 @@ function isNotBlank(value)
  * 
  * @param {Event Object}      e      : An instance of an event object that occurs when the spreadsheet is editted
  * @param {Spreadsheet}  spreadsheet : The spreadsheet that is being edited
+ * @param    {Sheet}       sheet     : The active sheeet.
  * @author Jarren Ralf
  */
 function itemScan(e, spreadsheet, sheet)
@@ -2410,12 +2416,12 @@ function itemScan(e, spreadsheet, sheet)
       }
     }
 
-    if (i === 0)
+    if (i == 0)
     {
       if (upcCode.toString().length > 25)
-        sheet.getRange(1, 1, 1, 2).setValues([['Barcode is Not Found.', '']]);
+        sheet.getRange(1, 1).setValue('Barcode is Not Found.');
       else
-        sheet.getRange(1, 1, 1, 2).setValues([['Barcode:\n\n' + upcCode + '\n\n is NOT FOUND.', '']]);
+        sheet.getRange(1, 1).setValue('Barcode:\n\n' + upcCode + '\n\n is NOT FOUND.');
     }
   }
 }
@@ -2591,7 +2597,7 @@ function manualScan(e, spreadsheet, sheet)
           sheet.getRange(1, 1, 1, 2).setValues([['Item Not Found on Manual Counts page.', '']]);
         else
         {
-          manualCountsPage.getRange(item[2], 3, 1, 3).setNumberFormat('@').setValues([['', '', '']])
+          manualCountsPage.getRange(item[2], 3, 1, 5).setNumberFormat('@').setValues([['', '', '', '', '']])
           sheet.getRange(1, 1, 1, 2).setValues([[item[0]  + '\nwas found on the Manual Counts page at line :\n' + item[2] 
                                                           + '\nCurrent Stock :\n' + item[4] 
                                                           + '\nCurrent Manual Count :\n\nCurrent Running Sum :\n',
@@ -2611,7 +2617,7 @@ function manualScan(e, spreadsheet, sheet)
           sheet.getRange(1, 1, 1, 2).setValues([['Item Not Found on Manual Counts page.', '']]);
         else
         {
-          var range = manualCountsPage.getRange(item[2], 3, 1, 3);
+          var range = manualCountsPage.getRange(item[2], 3, 1, 5);
           var manualCountsValues = range.getValues()
           
           if (isNotBlank(manualCountsValues[0][1]))
@@ -2620,7 +2626,7 @@ function manualScan(e, spreadsheet, sheet)
 
             if (runningSumSplit.length === 1)
             {
-              range.setNumberFormat('@').setValues([['', '', '']])
+              range.setNumberFormat('@').setValues([['', '', '', '', '']])
               manualCountsValues[0][0] = ''
               manualCountsValues[0][1] = ''
               manualCountsValues[0][2] = ''
@@ -2647,7 +2653,7 @@ function manualScan(e, spreadsheet, sheet)
           }
 
           manualCountsValues[0][2] = new Date().getTime()
-          range.setNumberFormats([['#.#', '@', '#']]).setValues(manualCountsValues)
+          range.setNumberFormats([['#.#', '@', '#', '@', '@']]).setValues(manualCountsValues)
           sheet.getRange(1, 1, 1, 2).setValues([[item[0]  + '\nwas found on the Manual Counts page at line :\n' + (item[2]) 
                                                           + '\nCurrent Stock :\n' + item[4]
                                                           + '\nCurrent Manual Count :\n' + manualCountsValues[0][0] 
@@ -2861,7 +2867,7 @@ function manualScan(e, spreadsheet, sheet)
 
         if (quantity_String === 'clear')
         {
-          manualCountsPage.getRange(item[2], 3, 1, 3).setNumberFormat('@').setValues([['', '', '']])
+          manualCountsPage.getRange(item[2], 3, 1, 5).setNumberFormat('@').setValues([['', '', '', '', '']])
           sheet.getRange(1, 1, 1, 2).setValues([[item[0]  + '\nwas found on the Manual Counts page at line :\n' + item[2] 
                                                           + '\nCurrent Stock :\n' + item[4] 
                                                           + '\nCurrent Manual Count :\n\nCurrent Running Sum :\n',
@@ -3046,6 +3052,7 @@ function manualScan(e, spreadsheet, sheet)
           {
             if (item[1].split(' ')[0] === 'was') // The item was already on the manual counts page
             {
+              Logger.log('This is the expected execution.')
               const range = manualCountsPage.getRange(item[2], 3, 1, 3);
               const itemValues = range.getValues()
               const updatedCount = Number(itemValues[0][0]) + quantity;
