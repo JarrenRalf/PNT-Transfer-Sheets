@@ -234,6 +234,80 @@ function addOneMode()
 }
 
 /**
+* This function moves all of the selected values on the item search page to the Manual Counts page on the Richmond, Parksville, and Prince Rupert spreadsheet.
+*
+* @author Jarren Ralf
+*/
+function addToAllManualCountsPages()
+{
+  const spreadsheets =  [SpreadsheetApp.openById('1cK1xrtJMeMbfQHrFc_TWUwCKlYzmkov0_zuBxO55iKM'), // Rupert
+                         SpreadsheetApp.openById('181NdJVJueFNLjWplRNsgNl0G-sEJVW3Oy4z9vzUFrfM'), // Parksville
+                         SpreadsheetApp.getActive()] // Richmond
+  const itemSearchSheet = spreadsheets[2].getSheetByName('Item Search')
+  var activeRanges = itemSearchSheet.getActiveRangeList().getRanges(); // The selected ranges on the item search sheet
+  var itemValues = [[[]]], firstRows = [], lastRows = [], items, manualCountsSheet, finalRow, startRow;
+  
+  // Find the first row and last row in the the set of all active ranges
+  for (var r = 0; r < activeRanges.length; r++)
+  {
+    firstRows[r] = activeRanges[r].getRow();
+     lastRows[r] = activeRanges[r].getLastRow()
+  }
+  
+  var     row = Math.min(...firstRows); // This is the smallest starting row number out of all active ranges
+  var lastRow = Math.max( ...lastRows); // This is the largest     final row number out of all active ranges
+  var finalDataRow = itemSearchSheet.getLastRow() + 1;
+  var numHeaders = 3;
+
+  if (row > numHeaders && lastRow <= finalDataRow) // If the user has not selected an item, alert them with an error message
+  { 
+    for (var r = 0; r < activeRanges.length; r++)
+      itemValues[r] = itemSearchSheet.getSheetValues(firstRows[r], 2, lastRows[r] - firstRows[r] + 1, 5);
+    
+    var itemVals = [].concat.apply([], itemValues); // Concatenate all of the item values as a 2-D array
+    var numItems = itemVals.length;
+
+    const manualCountsSheets = spreadsheets.map((spreadsheet, store) => {
+
+      switch (store)
+      {
+        case 0: // Rupert
+          items = itemVals.map(u => [u[0], u[4]]);
+          break;
+        case 1: // Parkville
+          items = itemVals.map(u => [u[0], u[3]]);
+          break;
+        case 2: // Richmond
+          items = itemVals.map(u => [u[0], u[2]]);
+          break;
+      }
+
+      manualCountsSheet = spreadsheet.getSheetByName("Manual Counts")
+      finalRow = manualCountsSheet.getLastRow();
+      startRow = (finalRow < 3) ? 4 : finalRow + 1;
+      manualCountsSheet.getRange(startRow, 1, numItems, items[0].length).setNumberFormat('@').setValues(items); // Move the item values to the destination sheet
+      applyFullRowFormatting(manualCountsSheet, startRow, numItems, 7); // Apply the proper formatting
+
+      switch (store)
+      {
+        case 0: // Rupert
+          spreadsheet.toast('Items added to Prince Rupert Manual Counts')
+          break;
+        case 1: // Parkville
+          spreadsheet.toast('Items added to Parksville Manual Counts')
+          break;
+      }
+
+      return manualCountsSheet;
+    })
+
+    manualCountsSheets[2].getRange(startRow, 3).activate()
+  }
+  else
+    SpreadsheetApp.getUi().alert('Please select an item from the list.');
+}
+
+/**
  * This function takes the user's selected items on the Item Search page of the Richmond spreadsheet and it places those items on the inFlowPick page.
  * 
  * @param {Number} qty : If an argument is passed to this function, it is the quantity that a user is entering on the Order page for the inFlow pick list
@@ -1560,7 +1634,7 @@ function copySelectedValues(sheet, startRow, numCols, qtyCol, isInfoCountsPage, 
   var startCol = (isOrderPage) ? 4 : ( (isItemsToRichPage) ? 3 : 1 ); // Set the start column of the range destination based on whether we are doing manual counts or item transfers
 
   if (row > numHeaders && lastRow <= finalDataRow) // If the user has not selected an item, alert them with an error message
-  {   
+  { 
     for (var r = 0; r < activeRanges.length; r++)
     {
          numRows[r] = lastRows[r] - firstRows[r] + 1;
