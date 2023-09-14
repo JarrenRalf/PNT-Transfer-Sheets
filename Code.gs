@@ -14,19 +14,28 @@ function installedOnEdit(e)
 
   try
   {
-    if (sheetName === "Order" || sheetName === "Shipped" || sheetName === "Received" || sheetName === "ItemsToRichmond") // Check if the user is trying to move or add a row
+    switch (sheetName)
     {
-      moveRow(e, spreadsheet, sheet, sheetName);
-      if (sheetName === "Shipped") receiveAll(e, spreadsheet, sheet);
+      case "Shipped":
+        receiveAll(e, spreadsheet, sheet); // Check if a user is trying to receive all of the items from one particular courrier
+      case "Order":
+      case "ItemsToRichmond":
+      case "Received":
+        itemScan(e, spreadsheet, sheet, sheetName); // Check if a barcode has been scanned
+        moveRow(e, spreadsheet, sheet, sheetName);  // Check if the user is trying to move or add a row
+        break;
+      case "Item Search":
+        search(e, spreadsheet, sheet); // Check if the user is searching for an item or trying to marry, unmarry or add a new item to the upc database
+        break;
+      case "Manual Counts":
+      case "InfoCounts":
+        warning(e, spreadsheet, sheet, sheetName); // Check if the user typed in the quantity in the wrong column
+        break;
+      case "Manual Scan":
+      case "Manual Scan2":
+        manualScan(e, spreadsheet, sheet) // Check if a barcode has been scanned
+        break;
     }
-    else if (sheetName === "Item Search") // Check if the user is searching for an item or trying to marry, unmarry or add a new item to the upc database
-      search(e, spreadsheet, sheet);
-    else if (sheetName === "Manual Counts" || sheetName === "InfoCounts") // Check if the user typed in the quantity in the wrong column
-      warning(e, spreadsheet, sheet, sheetName);
-    else if (sheetName === "Manual Scan" || sheetName === "Manual Scan2") // Check if a barcode has been scanned
-      manualScan(e, spreadsheet, sheet)
-    else if (sheetName === "Item Scan") // Check if a barcode has been scanned
-      itemScan(e, spreadsheet, sheet)
   } 
   catch (err) 
   {
@@ -579,7 +588,7 @@ function applyFullSpreadsheetFormatting(spreadsheet, sheets)
   const ONE_MONTH = new Date(YEAR, MONTH, DAY - 31);
   var numHeaders, rowStart, maxRow, lastRow, lastCol, numRows, dataRange, dataValues, descriptionWithHyperlinkRange, descriptionWithHyperlink, fontSizes, fontColours, 
     numberFormats, backgroundColours, horizontalAlignments, wrapStrategies, notesRange, noteBackgroundColours, richTextValues, headerNumberFormats, headerValues, 
-    headerBackgroundColours, headerFontColours, headerFontSizes, headerHorizontalAlignments, headerFonts, columnWidths;
+    headerBackgroundColours, headerFontColours, headerFontWeights, headerFontSizes, headerHorizontalAlignments, headerFonts, columnWidths;
 
   for (var j = 0; j < sheets.length; j++)
   {
@@ -604,35 +613,36 @@ function applyFullSpreadsheetFormatting(spreadsheet, sheets)
                       ['Order Date','Entered By:','Qty','UoM','Description','Notes','','','Shipped','Shipment Status'], 
                       ['', '', '', '', '', '', '', '', '', '']];
       headerBackgroundColours = [ '', [...new Array(8).fill('white'), '#fff2cc', '#d9ead3'], new Array(10).fill('white')];
+      headerFontWeights = [['normal', ...new Array(9).fill('bold')], new Array(10).fill('bold'), new Array(10).fill('bold')]
 
       if (sheetNames[j] === "Order")
       {
-        headerValues[0][0] = 'ITEMS ORDERED BY PNT ' + STORE_NAME;
-        headerBackgroundColours[0] = new Array(10).fill('#5b95f9');
-        headerFontColours = [ new Array(10).fill('white'),  new Array(10).fill('black'), new Array(10).fill('black')];
+        headerValues[0][3] = 'ITEMS ORDERED BY PNT ' + STORE_NAME;
+        headerBackgroundColours[0] = ['white', ...new Array(9).fill('#5b95f9')];
+        headerFontColours = [ ['black', ...new Array(9).fill('white')],  new Array(10).fill('black'), new Array(10).fill('black')];
         descriptionWithHyperlinkRange = sheets[j].getRange(1, 9);
         descriptionWithHyperlink = descriptionWithHyperlinkRange.getRichTextValue();
       }
       else if (sheetNames[j] === "Shipped")
       {
-        headerValues[0][0] = 'SHIPPED ITEMS IN TRANSIT TO PNT ' + STORE_NAME;
-        headerBackgroundColours[0] = new Array(10).fill('#ffd666');
+        headerValues[0][3] = 'SHIPPED ITEMS IN TRANSIT TO PNT ' + STORE_NAME;
+        headerBackgroundColours[0] = ['white', ...new Array(9).fill('#ffd666')];
         headerFontColours = [...Array(numHeaders)].map(e => new Array(10).fill('black'));
       }
       else if (sheetNames[j] === "Received")
       {
-        headerValues[0][0] = 'ITEMS RECEIVED INTO PNT ' + STORE_NAME;
-        headerBackgroundColours[0] = new Array(10).fill('#8bc34a');
+        headerValues[0][3] = 'ITEMS RECEIVED INTO PNT ' + STORE_NAME;
+        headerBackgroundColours[0] = ['white', ...new Array(9).fill('#8bc34a')];
         headerFontColours = [...Array(numHeaders)].map(e => new Array(10).fill('black'));
         descriptionWithHyperlinkRange = sheets[j].getRange(2, 5);
         descriptionWithHyperlink = descriptionWithHyperlinkRange.getRichTextValue();
       }
 
       // Prepare and set all of the headerRange values
-      headerFontSizes = [[30, ...new Array(9).fill(10)], [...new Array(8).fill(14), ...new Array(2).fill(12)], new Array(10).fill(10)];
-          headerFonts = [new Array(10).fill('Verdana'), new Array(10).fill('Arial'), new Array(10).fill('Arial')];
+      headerFontSizes = [[35, 10, 10, 27, ...new Array(6).fill(10)], [...new Array(8).fill(14), ...new Array(2).fill(12)], new Array(10).fill(10)];
+          headerFonts = [['Libre Barcode 128', ...new Array(9).fill('Verdana')], new Array(10).fill('Arial'), new Array(10).fill('Arial')];
       headerRange.setWrap(true).setNumberFormat('@').setBackgrounds(headerBackgroundColours)
-        .setFontLine('none').setFontWeight('bold').setFontStyle('normal').setFontFamilies(headerFonts).setFontSizes(headerFontSizes).setFontColors(headerFontColours)
+        .setFontLine('none').setFontWeights(headerFontWeights).setFontStyle('normal').setFontFamilies(headerFonts).setFontSizes(headerFontSizes).setFontColors(headerFontColours)
         .setVerticalAlignment('middle').setHorizontalAlignment('center').setValues(headerValues);
 
       if (sheetNames[j] === "Received")
@@ -2442,61 +2452,114 @@ function isNotBlank(value)
 }
 
 /**
- * This function searches the UPC Database for the upc value (the barcode that was scanned) and puts it on the order page.
+ * This function searches the UPC Database for the upc value (the barcode that was scanned) and puts it on the current page.
+ * If scanned on the Received page, then it takes the user to that item on the Shipped sheet in order for them to receive it.
  * 
  * @param {Event Object}      e      : An instance of an event object that occurs when the spreadsheet is editted
  * @param {Spreadsheet}  spreadsheet : The spreadsheet that is being edited
- * @param    {Sheet}       sheet     : The active sheeet.
+ * @param    {Sheet}       sheet     : The active sheet.
+ * @param    {String}     sheetName  : The name of the active sheet.
  * @author Jarren Ralf
  */
-function itemScan(e, spreadsheet, sheet)
+function itemScan(e, spreadsheet, sheet, sheetName)
 {
-  if (userHasNotPressedDelete(e.value))
-  {
-    const barcodeInputRange = e.range;
-    const upcDatabase = spreadsheet.getSheetByName("UPC Database").getDataRange().getValues();
-    const orderPage = spreadsheet.getSheetByName("Order");
-    const lastRow = orderPage.getLastRow();
-    const orderPageValues = orderPage.getSheetValues(4, 5, lastRow - 3, 1);
-    const row = lastRow + 1; 
-    const upcCode = barcodeInputRange.setWrapStrategy(SpreadsheetApp.WrapStrategy.WRAP)  // Wrap strategy for the cell
-      .setFontFamily("Arial").setFontColor("black").setFontSize(25)                      // Set the font parameters
-      .setVerticalAlignment("middle").setHorizontalAlignment("center")                   // Set the alignment parameters
-      .getValue();
+  const range    = e.range;           // The range of the edited cell
+  const rowStart = range.rowStart;    // The first row of the edited range
+  const colStart = range.columnStart; // The first column of the edited range
+  const colEnd   = range.columnEnd;   // The last column of the edited range
+  const value    = range.getValue();  // The value of the edited cell
 
-    loop: for (var i = upcDatabase.length - 1; i >= 1; i--)
+  if (rowStart == range.rowEnd && range.columnEnd && rowStart == 1 && colStart == 1 && (colEnd == 1 || colEnd == 3)) // Make sure that only the top left cell is being editted
+  {
+    if (colEnd == 3)
+      range.merge()
+
+    if (isNotBlank(value)) 
     {
-      if (upcDatabase[i][0] == upcCode)
+      const upcDatabase = spreadsheet.getSheetByName("UPC Database").getDataRange().getValues();
+      const upcCode = range.setWrapStrategy(SpreadsheetApp.WrapStrategy.CLIP).setFontFamily("Libre Barcode 128")
+        .setVerticalAlignment("middle").setHorizontalAlignment("center").setFontColor("black").setFontSize(35)
+        .setBorder(true, true, true, true, false, false, 'black', SpreadsheetApp.BorderStyle.SOLID)
+        .getValue();
+      
+      const lastRow = sheet.getLastRow();
+      const row = lastRow + 1; 
+
+      loop: for (var i = upcDatabase.length - 1; i >= 1; i--)
       {
-        for (var j = 0; j < orderPageValues.length; j++)
+        if (upcDatabase[i][0] == upcCode)
         {
-          if (orderPageValues[j][0] == upcDatabase[i][2])
+          if (sheetName === 'Shipped')
           {
-            barcodeInputRange.setValue('Item # ' + upcDatabase[i][2] + ' is already on the Order page.')
-            orderPage.getRange(j + 4, 3, 1, 4).activate();
+            sheet.getRange(row, 4, 1, 7).setValues([[upcDatabase[i][1], upcDatabase[i][2], null, upcDatabase[i][3], '', '', 'Carrier Not Assigned']])
+            applyFullRowFormatting(sheet, row, 1, 11)
+            sheet.getRange(row, 3).activate();
+            dateStamp(row, 11);
+            spreadsheet.toast('Item Added to Bottom of Page')
+          }
+          else if (sheetName === 'ItemsToRichmond')
+          {
+            sheet.getRange(row, 3, 1, 2).setValues([[upcDatabase[i][1], upcDatabase[i][2]]])
+            applyFullRowFormatting(sheet, row, 1)
+            sheet.getRange(row, 6).activate();
+            spreadsheet.toast('Item Added to Bottom of Page')
+          }
+          else if (sheetName === 'Order')
+          {
+            const orderPageValues = sheet.getSheetValues(4, 5, lastRow - 3, 1);
+
+            for (var j = 0; j < orderPageValues.length; j++)
+            {
+              if (orderPageValues[j][0] == upcDatabase[i][2])
+              {
+                sheet.getRange(j + 4, 3, 1, 4).activate();
+                spreadsheet.toast('Item Already on Order Page')
+                break loop;
+              }
+            }
+
+            if (j === orderPageValues.length) // Item not found on order page
+            {
+              sheet.getRange(row, 4, 1, 4).setValues([[upcDatabase[i][1], upcDatabase[i][2], null, upcDatabase[i][3]]])
+              applyFullRowFormatting(sheet, row, 1, 11)
+              sheet.getRange(row, 3).activate();
+              spreadsheet.toast('Item Added to Bottom of Page')
+            }
+          }
+          else if (sheetName === 'Received')
+          {
+            const shippedPage = spreadsheet.getSheetByName('Shipped');
+            const shippedPageValues = shippedPage.getSheetValues(4, 5, lastRow - 3, 1);
+
+            for (var j = 0; j < shippedPageValues.length; j++)
+            {
+              if (shippedPageValues[j][0] == upcDatabase[i][2])
+              {
+                shippedPage.getRange(j + 4, 10).activate();
+                spreadsheet.toast('Please Change Shipment Status to Rec\'d ...')
+                break loop;
+              }
+            }
+
+            spreadsheet.toast('Item Not Found On Shipped Page')
             break loop;
           }
-        }
 
-        if (j === orderPageValues.length) // Item not found on order page
-        {
-          orderPage.getRange(row, 4, 1,4).setValues([[upcDatabase[i][1], upcDatabase[i][2], null, upcDatabase[i][3]]])
-          applyFullRowFormatting(orderPage, row, 1, 11)
-          barcodeInputRange.setValue('Item # ' + upcDatabase[i][2] + ' has been moved to the Order page.')
-          orderPage.getRange(row, 3).activate();
           dateStamp(row, 1);
           break;
         }
       }
-    }
 
-    if (i == 0)
-    {
-      if (upcCode.toString().length > 25)
-        sheet.getRange(1, 1).setValue('Barcode is Not Found.');
+      if (i == 0)
+      {
+        range.setValue('Barcode Not Found');
+        spreadsheet.toast('Barcode Not Found')
+      }
       else
-        sheet.getRange(1, 1).setValue('Barcode:\n\n' + upcCode + '\n\n is NOT FOUND.');
+        range.setValue('Scan Here');
     }
+    else // The user has clicked delete
+      range.setValue('Scan Here');
   }
 }
 
