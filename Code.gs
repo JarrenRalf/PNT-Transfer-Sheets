@@ -609,7 +609,7 @@ function applyFullSpreadsheetFormatting(spreadsheet, sheets)
       for (var c = 0; c < lastCol; c++)
         sheets[j].setColumnWidth(c + 1, [90, 100, 50, 75, 650, 250, 40, 40, 75, 180, 125, 25, 50][c]);
 
-      headerValues = [['','','','','','','Current Stock','Actual Count','',''],
+      headerValues = [['Scan Here','','','','','','Current Stock','Actual Count','',''],
                       ['Order Date','Entered By:','Qty','UoM','Description','Notes','','','Shipped','Shipment Status'], 
                       ['', '', '', '', '', '', '', '', '', '']];
       headerBackgroundColours = [ '', [...new Array(8).fill('white'), '#fff2cc', '#d9ead3'], new Array(10).fill('white')];
@@ -737,14 +737,15 @@ function applyFullSpreadsheetFormatting(spreadsheet, sheets)
         sheets[j].setColumnWidth(c + 1, [90, 100, 75, 700, 250, 75, 100, 125, 25][c]);
 
       // Prepare and set all of the headerRange values and formats
-      headerValues = [  ['ITEMS BEING SHIPPED TO PNT RICHMOND', '', '', '', '', '', '', '', 'TRANSFERRED'],
+      headerValues = [  ['Scan Here', '', '', 'ITEMS BEING SHIPPED TO PNT RICHMOND', '', '', '', '', 'TRANSFERRED'],
                         ['Order Date','Entered By:','UoM','Description','Notes', 'Shipped','Carrier','Received By', ''], 
                         [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0]];
-      headerFonts = [new Array(9).fill('Verdana'), new Array(9).fill('Arial'), new Array(9).fill('Arial')];
-      headerFontSizes = [[30, ...new Array(8).fill(10)], [...new Array(5).fill(14), ...new Array(4).fill(12)], new Array(9).fill(10)];
-      headerFontColours = [new Array(9).fill('white'),  new Array(9).fill('black'), new Array(9).fill('black')];
-      headerBackgroundColours = [new Array(9).fill('#5b95f9'), [...new Array(5).fill('white'), '#fff2cc', '#d9ead3', '#d9ead3', ''], new Array(9).fill('white')];
-      headerRange.setFontLine('none').setFontStyle('normal').setFontFamilies(headerFonts).setFontSizes(headerFontSizes).setFontWeight('bold').setFontColors(headerFontColours)
+      headerFonts = [['Libre Barcode 128', ...new Array(8).fill('Verdana')], new Array(9).fill('Arial'), new Array(9).fill('Arial')];
+      headerFontSizes = [[35, 10, 10, 30, ...new Array(5).fill(10)], [...new Array(5).fill(14), ...new Array(4).fill(12)], new Array(9).fill(10)];
+      headerFontColours = [['black', ...new Array(8).fill('white')],  new Array(9).fill('black'), new Array(9).fill('black')];
+      headerFontWeights = [['normal', ...new Array(8).fill('bold')],  new Array(9).fill('bold'), new Array(9).fill('bold')];
+      headerBackgroundColours = [['white', ...new Array(8).fill('#5b95f9')], [...new Array(5).fill('white'), '#fff2cc', '#d9ead3', '#d9ead3', ''], new Array(9).fill('white')];
+      headerRange.setFontLine('none').setFontStyle('normal').setFontFamilies(headerFonts).setFontSizes(headerFontSizes).setFontWeights(headerFontWeights).setFontColors(headerFontColours)
         .setNumberFormat('@').setVerticalAlignment('middle').setHorizontalAlignment('center').setWrap(true).setBackgrounds(headerBackgroundColours).setValues(headerValues);
 
       // Prepare all of the dataRange values and formats
