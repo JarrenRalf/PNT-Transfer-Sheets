@@ -87,9 +87,13 @@ const inflow_conversions = {
   '10782109038 - Rachel Black We 210/9 X 3/8" X465MDX 900 -  - Raschel Knotless - POUND': 235,
   '24400000 - BLACK RUBBER MATTING RIBBED    3 \' WIDE - ERIKS - Mats & Tables - FOOT': 225,
   '26014025 - GRADE 43 HIGH TEST GALV CHAIN 1/4" -  - Chain - FOOT': 500,
-  '21000001 - CHAIN: PROOF COIL 1/4" Hot Dipped Galv - VANGUARD - Chain - FOOT': 500,
+  '26014516 - GRADE 43 HIGH TEST GALV CHAIN 5/16" -  - Chain - FOOT': 500,
+  '21000001 - CHAIN: PROOF COIL 1/4" Hot Dipped Galv - VANGUARD - Chain - FOOT': 800,
+  '21000002 - CHAIN: PROOF COIL 5/16" Hot Dipped Galv - VANGUARD - Chain - FOOT': 500,
   '21000003 - CHAIN: PROOF COIL 3/8" Hot Dipped Galv - VANGUARD - Chain - FOOT': 400, 
-  '21000004 - CHAIN: PROOF COIL 1/2" Hot Dipped Galv - VANGUARD - Chain - FOOT': 200
+  '21000004 - CHAIN: PROOF COIL 1/2" Hot Dipped Galv - VANGUARD - Chain - FOOT': 200,
+  '21000005 - CHAIN: PROOF COIL 5/8" Hot Dipped Galv - VANGUARD - Chain - FOOT': 150,
+  '21000387 - CHAIN: PROOF COIL 3/16" Hot Dipped Galv - VANGUARD - Chain - FOOT': 1
 }
 
 /**
