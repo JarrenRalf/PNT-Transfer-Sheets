@@ -2421,7 +2421,7 @@ function insertCarrierNotAssignedBanner()
 
   conditional: if (true)
   {
-    for (var i = sheet.getLastRow() - 1; i >= 3; i--)
+    for (var i = sheet.getLastRow() - 1; i >= 4; i--)
     {
       if (values[i][BANNER_COL] === 'Carrier Not Assigned') // Carrier Not Assigned banner was found!
       {
@@ -2433,10 +2433,12 @@ function insertCarrierNotAssignedBanner()
         bannerRow.push(i + 1); // Determine which row the banner should go
     }
 
-    sheet.insertRowsAfter(bannerRow[0] + 1, 1).setRowHeight(bannerRow[0] + 1, 40).getRange(bannerRow[0] + 1, 1, 1, LAST_COL).clearDataValidations()
+    sheet.insertRowsAfter(bannerRow[0], 1).setRowHeight(bannerRow[0] + 1, 40).getRange(bannerRow[0] + 1, 1, 1, LAST_COL).clearDataValidations()
       .setBackgrounds([[...new Array(LAST_COL - 1).fill('#6d9eeb'), 'white']]).setFontColors([[...new Array(LAST_COL - 2).fill('white'), '#6d9eeb', 'white']])
       .setFontFamily('Arial').setFontSize(14).setFontWeight('bold').setHorizontalAlignment('left').setNumberFormat('@').setVerticalAlignment('middle')
-      .setValues([['Carrier Not Assigned', ...new Array(LAST_COL - 3).fill(null), 'via', '']]);
+      .setValues([['Carrier Not Assigned', ...new Array(LAST_COL - 3).fill(null), 'via', '']])
+      .offset(0, 0, 1, LAST_COL - 1).setBorder(true, true, true, true, false, null)
+      .offset(0, 0, 1, LAST_COL - 2).merge();
   }
 }
 
