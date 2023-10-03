@@ -87,13 +87,9 @@ const inflow_conversions = {
   '10782109038 - Rachel Black We 210/9 X 3/8" X465MDX 900 -  - Raschel Knotless - POUND': 235,
   '24400000 - BLACK RUBBER MATTING RIBBED    3 \' WIDE - ERIKS - Mats & Tables - FOOT': 225,
   '26014025 - GRADE 43 HIGH TEST GALV CHAIN 1/4" -  - Chain - FOOT': 500,
-  '26014516 - GRADE 43 HIGH TEST GALV CHAIN 5/16" -  - Chain - FOOT': 500,
-  '21000001 - CHAIN: PROOF COIL 1/4" Hot Dipped Galv - VANGUARD - Chain - FOOT': 800,
-  '21000002 - CHAIN: PROOF COIL 5/16" Hot Dipped Galv - VANGUARD - Chain - FOOT': 500,
+  '21000001 - CHAIN: PROOF COIL 1/4" Hot Dipped Galv - VANGUARD - Chain - FOOT': 500,
   '21000003 - CHAIN: PROOF COIL 3/8" Hot Dipped Galv - VANGUARD - Chain - FOOT': 400, 
-  '21000004 - CHAIN: PROOF COIL 1/2" Hot Dipped Galv - VANGUARD - Chain - FOOT': 200,
-  '21000005 - CHAIN: PROOF COIL 5/8" Hot Dipped Galv - VANGUARD - Chain - FOOT': 150,
-  '21000387 - CHAIN: PROOF COIL 3/16" Hot Dipped Galv - VANGUARD - Chain - FOOT': 1
+  '21000004 - CHAIN: PROOF COIL 1/2" Hot Dipped Galv - VANGUARD - Chain - FOOT': 200
 }
 
 /**
@@ -4325,7 +4321,22 @@ function search(e, spreadsheet, sheet)
       {
         data = inventorySheet.getSheetValues(8, 1, inventorySheet.getLastRow() - 7, 8);
 
-        if (values[0][0].toString().includes('-'))
+        if (values[0][0].toString().includes(' - ')) // Strip the sku from the first part of the google description
+        {
+          skus = values.map(item => {
+          
+            for (var i = 0; i < data.length; i++)
+            {
+              if (data[i][7] == item[0].toString().split(" - ", 1)[0].toUpperCase())
+                return [data[i][0], data[i][1], '', data[i][3], data[i][4], data[i][5], data[i][6]]
+            }
+
+            someSKUsNotFound = true;
+
+            return ['SKU Not Found:', item[0].toString().split(" - ", 1)[0].toUpperCase(), '', '', '', '', '']
+          });
+        }
+        else if (values[0][0].toString().includes('-')) // The SKU contains dashes because that's the convention from Adagio
         {
           skus = values.map(sku => sku[0].substring(0,4) + sku[0].substring(5,9) + sku[0].substring(10)).map(item => {
           
@@ -4340,7 +4351,7 @@ function search(e, spreadsheet, sheet)
             return ['SKU Not Found:', item, '', '', '', '', '']
           });
         }
-        else
+        else // The regular plain SKUs are being pasted
         {
           skus = values.map(item => {
           
@@ -4356,12 +4367,27 @@ function search(e, spreadsheet, sheet)
           });
         }
       }
-      else
+      else // Parksville or Rupert
       {
         data = inventorySheet.getSheetValues(10, 1, inventorySheet.getLastRow() - 9, 7);
         var columnIndex = (isParksvilleSpreadsheet(spreadsheet)) ? [3, 2, 4, 5] : [4, 2, 3, 5];
         
-        if (values[0][0].toString().includes('-'))
+        if (values[0][0].toString().includes(' - ')) // Strip the sku from the first part of the google description
+        {
+          skus = values.map(item => {
+          
+            for (var i = 0; i < data.length; i++)
+            {
+              if (data[i][6] == item[0].toString().split(" - ", 1)[0].toUpperCase())
+                return [data[i][0], data[i][1], '', ...columnIndex.map(col => data[i][col])]
+            }
+
+            someSKUsNotFound = true;
+
+            return ['SKU Not Found:', item[0].toString().split(" - ", 1)[0].toUpperCase(), '', '', '', '', '']
+          });
+        }
+        else if (values[0][0].toString().includes('-'))
         {
           skus = values.map(sku => sku[0].substring(0,4) + sku[0].substring(5,9) + sku[0].substring(10)).map(item => {
           
@@ -4418,8 +4444,9 @@ function search(e, spreadsheet, sheet)
 
         sheet.getRange(4, 1, MAX_NUM_ITEMS, 8).clearContent().setBackground('white').setFontColor('black').setBorder(true, true, true, true, false, false)
           .offset(0, 0, numItems, 7)
-            .setFontFamily('Arial').setFontWeight('bold').setFontSize(10).setHorizontalAlignments(horizontalAlignments).setBackgrounds(colours).setValues(items)
-          .offset(numSkusNotFound, 0, numSkusFound, 7).activate()
+            .setFontFamily('Arial').setFontWeight('bold').setFontSize(10).setHorizontalAlignments(horizontalAlignments).setBackgrounds(colours)
+            .setBorder(null, null, false, null, false, false).setValues(items)
+          .offset((numSkusFound != 0) ? numSkusNotFound : 0, 0, (numSkusFound != 0) ? numSkusFound : numSkusNotFound, 7).activate()
       }
       else // All SKUs were succefully found
       {
@@ -4427,7 +4454,8 @@ function search(e, spreadsheet, sheet)
         const horizontalAlignments = new Array(numItems).fill(['center', 'left', 'center', 'center', 'center', 'center', 'center'])
 
         sheet.getRange(4, 1, MAX_NUM_ITEMS, 8).clearContent().setBackground('white').setFontColor('black').offset(0, 0, numItems, 7)
-          .setFontFamily('Arial').setFontWeight('bold').setFontSize(10).setHorizontalAlignments(horizontalAlignments).setValues(skus).activate()
+          .setFontFamily('Arial').setFontWeight('bold').setFontSize(10).setHorizontalAlignments(horizontalAlignments)
+          .setBorder(null, null, false, null, false, false).setValues(skus).activate()
       }
     }
   }
