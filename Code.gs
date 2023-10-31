@@ -1434,6 +1434,9 @@ function clearInventory()
     inventorySheet.getRange('A7:A').activate(); // This line activates the entire first column of the spreadsheet to verify the number of rows of the sheet
     inventorySheet.getRange(7, 1, numRows, data[0].length).setNumberFormat('@').setValues(data);
     numRowsRange.setValues([[numRows, dateStamp(undefined, null, null, null, 'dd MMM HH:mm'), getRunTime(startTime)]]);
+
+    spreadsheet.getSheetByName('Assembly').clearContents();
+    spreadsheet.getSheetByName('UoM Conversion').clearContents();
   }
   else
   {
@@ -2832,6 +2835,7 @@ function manualScan(e, spreadsheet, sheet)
                                                           + '\nCurrent Running Sum :\n' + manualCountsValues[0][1]
                                                           + '\nLast Counted :\n' + getCountedSinceString(manualCountsValues[0][2]),
                                                           '']]);
+          sheet.setColumnWidth(2, 350).deleteColumn(2)
         }
       }
       else
@@ -2849,6 +2853,7 @@ function manualScan(e, spreadsheet, sheet)
                                                                         + '\nCurrent Stock :\n' + upcDatabase[i][3]
                                                                         + '\nCurrent Manual Count :\n1',
                                                                         '']]);
+              sheet.setColumnWidth(2, 350).deleteColumn(2)
             }
           }
         }
@@ -2888,6 +2893,7 @@ function manualScan(e, spreadsheet, sheet)
                                                                                     + '\nCurrent Manual Count :\n1',
                                                                                     '']]);
                   }
+                  sheet.setColumnWidth(2, 350).deleteColumn(2)
                   break; // Item was found on the manual counts page, therefore stop searching
                 } 
               }
@@ -2901,6 +2907,7 @@ function manualScan(e, spreadsheet, sheet)
                                                                           + '\nCurrent Stock :\n' + upcDatabase[i][3]
                                                                           + '\nCurrent Manual Count :\n1',
                                                                           '']]);
+                sheet.setColumnWidth(2, 350).deleteColumn(2)
               }
 
               break;
