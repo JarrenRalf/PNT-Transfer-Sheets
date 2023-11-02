@@ -2904,7 +2904,6 @@ function manualScan(e, spreadsheet, sheet)
                                                                           + '\nCurrent Stock :\n' + upcDatabase[i][3]
                                                                           + '\nCurrent Manual Count :\n1',
                                                                           '']]);
-                
               }
 
               break;
@@ -2912,21 +2911,17 @@ function manualScan(e, spreadsheet, sheet)
           }
         }
 
-        sheet.deleteColumn(2)
-
         if (i === 0)
         {
           if (upcCode.toString().length > 25)
             sheet.getRange(1, 1, 1, 2).setValues([['Barcode is Not Found.', '']]);
           else
             sheet.getRange(1, 1, 1, 2).setValues([['Barcode:\n\n' + upcCode + '\n\n is NOT FOUND.', '']]);
-  
+
           sheet.getRange(1, 1).activate()
         }
         else
           sheet.getRange(1, 2).setValue('').activate();
-
-        sheet.setColumnWidth(2, 350)    
       }
     }
   }
