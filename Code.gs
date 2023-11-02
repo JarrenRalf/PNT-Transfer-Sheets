@@ -2856,7 +2856,14 @@ function manualScan(e, spreadsheet, sheet)
         item = item.split('\n');
 
         if (item[1].split(' ')[0] === 'will') // The item was not found on the manual counts page
-          sheet.getRange(1, 1, 1, 2).setValues([['Item Not Found on Manual Counts page.', '']]);
+        {
+          manualCountsPage.getRange(item[2], 1, 1, 7).setNumberFormats([['@', '@', '#.#', '@', '#', '@', '@']]).setValues([[item[0], item[4], upcCode, '\'' + upcCode, new Date().getTime(), '', '']]);
+          applyFullRowFormatting(manualCountsPage, item[2], 1, 7)
+          sheet.getRange(1, 1, 1, 2).setValues([[item[0]  + '\nwas added to the Manual Counts page at line :\n' + item[2] 
+                                                          + '\nCurrent Stock :\n' + item[4] 
+                                                          + '\nCurrent Manual Count :\n' + upcCode,
+                                                          '']]);
+        }
         else
         {
           const range = manualCountsPage.getRange(item[2], 3, 1, 3);
@@ -3240,7 +3247,6 @@ function manualScan(e, spreadsheet, sheet)
           {
             if (item[1].split(' ')[0] === 'was') // The item was already on the manual counts page
             {
-              Logger.log('This is the expected execution.')
               const range = manualCountsPage.getRange(item[2], 3, 1, 3);
               const itemValues = range.getValues()
               const updatedCount = Number(itemValues[0][0]) + quantity;
