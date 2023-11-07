@@ -1134,7 +1134,7 @@ function applyFullSpreadsheetFormatting(spreadsheet, sheets)
       sheets[j].hideSheet().getDataRange().setFontSize(20).setFontLine('none').setFontStyle('normal').setFontWeight('normal').setFontFamily('Arial').setFontColor('black')
         .setBackground('white').setVerticalAlignment('middle').setWrapStrategy(SpreadsheetApp.WrapStrategy.CLIP);
     else if (sheetNames[j] === 'Manual Scan')
-      sheets[j].setColumnWidth(1, 825).setColumnWidth(2, 350).setRowHeight(1, 32).setRowHeight(2, 500)
+      sheets[j].setColumnWidth(1, 825).setColumnWidth(2, 350).setRowHeight(1, 32).setRowHeight(2, 468)
         .getRange(1, 1, 2, 2).setNumberFormats([['@', '@'], ['@', '#.#']]).setFontSizes([[12, 12], [25, 25]]).setFontLine('none').setFontStyle('none').setFontWeight('normal')
           .setFontFamily('Arial').setFontColor('black').setBackground('white').setVerticalAlignment('middle').setHorizontalAlignment('center').setWrapStrategy(SpreadsheetApp.WrapStrategy.WRAP)
         .offset(0, 0, 1, 1).setDataValidation(SpreadsheetApp.newDataValidation().requireValueInList([]).build())
