@@ -2971,13 +2971,11 @@ function manualScan(e, spreadsheet, sheet)
                 sheet.getRange(2, 1, 1, 2).setNumberFormats([['@', '#.#']]).setValues([['Barcode is Not Found.', '']]);
               else
                 sheet.getRange(2, 1, 1, 2).setNumberFormats([['@', '#.#']]).setValues([['Barcode:\n\n' + upcCode + '\n\n is NOT FOUND.', '']]);
-
-              sheet.getRange(2, 1).activate()
             }
             else
               sheet.getRange(2, 2).setValue('').setNumberFormat('#.#').activate(); // Since the second column was deleted, the number format needs to be restored
 
-            sheet.setColumnWidth(2, 350);
+            sheet.setColumnWidth(2, 350).getRange(2, 1).activate()
           }
         }
       }
