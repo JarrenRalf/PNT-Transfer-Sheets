@@ -1,126 +1,104 @@
 {
   "timeZone": "America/Los_Angeles",
-  "dependencies": {},
+  "dependencies": {
+  },
   "webapp": {
-    "executeAs": "USER_DEPLOYING",
-    "access": "ANYONE"
+    "access": "ANYONE",
+    "executeAs": "USER_DEPLOYING"
   },
   "exceptionLogging": "STACKDRIVER",
   "runtimeVersion": "V8",
   "sheets": {
-    "macros": [
-      {
-        "menuName": "22222",
-        "functionName": "_22222"
-      },
-      {
-        "menuName": "78565",
-        "functionName": "_78565"
-      },
-      {
-        "menuName": "widths",
-        "functionName": "widths",
-        "defaultShortcut": "Ctrl+Alt+Shift+1"
-      },
-      {
-        "menuName": "clearBorders",
-        "functionName": "clearBorders",
-        "defaultShortcut": "Ctrl+Alt+Shift+0"
-      },
-      {
-        "menuName": "addBorders",
-        "functionName": "addBorders"
-      },
-      {
-        "menuName": "completeTransfer",
-        "functionName": "completeTransfer"
-      },
-      {
-        "menuName": "Untitled Macro",
-        "functionName": "UntitledMacro"
-      },
-      {
-        "menuName": "xxxxxxxx",
-        "functionName": "xxxxxxxx"
-      },
-      {
-        "menuName": "dfgdfgdfgdfg",
-        "functionName": "dfgdfgdfgdfg"
-      },
-      {
-        "menuName": "dfgdfgdfg",
-        "functionName": "dfgdfgdfg"
-      },
-      {
-        "menuName": "sdfsf",
-        "functionName": "sdfsf"
-      },
-      {
-        "menuName": "Checkboxes",
-        "functionName": "Checkboxes",
-        "defaultShortcut": "Ctrl+Alt+Shift+9"
-      },
-      {
-        "menuName": "fixSearchBoxFormatting",
-        "functionName": "fixSearchBoxFormatting"
-      },
-      {
-        "menuName": "formatActiveSheet",
-        "functionName": "formatActiveSheet",
-        "defaultShortcut": "Ctrl+Alt+Shift+0"
-      },
-      {
-        "menuName": "insertCarrierNotAssignedBanner",
-        "functionName": "insertCarrierNotAssignedBanner",
-        "defaultShortcut": "Ctrl+Alt+Shift+1"
-      },
-      {
-        "menuName": "unmarryUPC",
-        "functionName": "unmarryUPC",
-        "defaultShortcut": "Ctrl+Alt+Shift+7"
-      },
-      {
-        "menuName": "addItemsToUpcData_ItemsNotFound",
-        "functionName": "addItemsToUpcData_ItemsNotFound",
-        "defaultShortcut": "Ctrl+Alt+Shift+4"
-      },
-      {
-        "menuName": "moveToManualCounts",
-        "functionName": "moveToManualCounts",
-        "defaultShortcut": "Ctrl+Alt+Shift+5"
-      },
-      {
-        "menuName": "moveToManualScan",
-        "functionName": "moveToManualScan",
-        "defaultShortcut": "Ctrl+Alt+Shift+6"
-      },
-      {
-        "menuName": "addItemsToUpcData",
-        "functionName": "addItemsToUpcData",
-        "defaultShortcut": "Ctrl+Alt+Shift+3"
-      },
-      {
-        "menuName": "moveToUpcDatabse",
-        "functionName": "moveToUpcDatabse",
-        "defaultShortcut": "Ctrl+Alt+Shift+8"
-      },
-      {
-        "menuName": "moveToItemSearch",
-        "functionName": "moveToItemSearch",
-        "defaultShortcut": "Ctrl+Alt+Shift+9"
-      },
-      {
-        "menuName": "updateUPC_Database",
-        "functionName": "updateUPC_Database"
-      },
-      {
-        "menuName": "countLog",
-        "functionName": "countLog"
-      },
-      {
-        "menuName": "getPhysicalCounted_CountLog",
-        "functionName": "getPhysicalCounted_CountLog"
-      }
-    ]
+    "macros": [{
+      "menuName": "22222",
+      "functionName": "_22222"
+    }, {
+      "menuName": "78565",
+      "functionName": "_78565"
+    }, {
+      "menuName": "widths",
+      "functionName": "widths",
+      "defaultShortcut": "Ctrl+Alt+Shift+1"
+    }, {
+      "menuName": "clearBorders",
+      "functionName": "clearBorders",
+      "defaultShortcut": "Ctrl+Alt+Shift+0"
+    }, {
+      "menuName": "addBorders",
+      "functionName": "addBorders"
+    }, {
+      "menuName": "completeTransfer",
+      "functionName": "completeTransfer"
+    }, {
+      "menuName": "Untitled Macro",
+      "functionName": "UntitledMacro"
+    }, {
+      "menuName": "xxxxxxxx",
+      "functionName": "xxxxxxxx"
+    }, {
+      "menuName": "dfgdfgdfgdfg",
+      "functionName": "dfgdfgdfgdfg"
+    }, {
+      "menuName": "dfgdfgdfg",
+      "functionName": "dfgdfgdfg"
+    }, {
+      "menuName": "sdfsf",
+      "functionName": "sdfsf"
+    }, {
+      "menuName": "Checkboxes",
+      "functionName": "Checkboxes",
+      "defaultShortcut": "Ctrl+Alt+Shift+9"
+    }, {
+      "menuName": "fixSearchBoxFormatting",
+      "functionName": "fixSearchBoxFormatting"
+    }, {
+      "menuName": "formatActiveSheet",
+      "functionName": "formatActiveSheet",
+      "defaultShortcut": "Ctrl+Alt+Shift+0"
+    }, {
+      "menuName": "insertCarrierNotAssignedBanner",
+      "functionName": "insertCarrierNotAssignedBanner",
+      "defaultShortcut": "Ctrl+Alt+Shift+1"
+    }, {
+      "menuName": "unmarryUPC",
+      "functionName": "unmarryUPC",
+      "defaultShortcut": "Ctrl+Alt+Shift+7"
+    }, {
+      "menuName": "addItemsToUpcData_ItemsNotFound",
+      "functionName": "addItemsToUpcData_ItemsNotFound",
+      "defaultShortcut": "Ctrl+Alt+Shift+4"
+    }, {
+      "menuName": "moveToManualCounts",
+      "functionName": "moveToManualCounts",
+      "defaultShortcut": "Ctrl+Alt+Shift+5"
+    }, {
+      "menuName": "moveToManualScan",
+      "functionName": "moveToManualScan",
+      "defaultShortcut": "Ctrl+Alt+Shift+6"
+    }, {
+      "menuName": "addItemsToUpcData",
+      "functionName": "addItemsToUpcData",
+      "defaultShortcut": "Ctrl+Alt+Shift+3"
+    }, {
+      "menuName": "moveToUpcDatabse",
+      "functionName": "moveToUpcDatabse",
+      "defaultShortcut": "Ctrl+Alt+Shift+8"
+    }, {
+      "menuName": "moveToItemSearch",
+      "functionName": "moveToItemSearch",
+      "defaultShortcut": "Ctrl+Alt+Shift+9"
+    }, {
+      "menuName": "updateUPC_Database",
+      "functionName": "updateUPC_Database"
+    }, {
+      "menuName": "countLog",
+      "functionName": "countLog"
+    }, {
+      "menuName": "getPhysicalCounted_CountLog",
+      "functionName": "getPhysicalCounted_CountLog"
+    }, {
+      "menuName": "fillEmptyCellsWithZero",
+      "functionName": "fillEmptyCellsWithZero"
+    }]
   }
 }
