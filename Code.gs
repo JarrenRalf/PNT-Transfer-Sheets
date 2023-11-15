@@ -2735,7 +2735,7 @@ function manualScan(e, spreadsheet, sheet)
           {
             var item = e.oldValue;
 
-            if (item === undefined)
+            if (item === "UPC Code has been added to the database temporarily." || item === "UPC Code has been added to the unmarry list." || item === undefined)
               item = barcodeInputRange.offset(0, -1).getValue();
 
             item = item.split('\n');
@@ -2755,7 +2755,7 @@ function manualScan(e, spreadsheet, sheet)
           {
             var item = e.oldValue;
 
-            if (item === undefined)
+            if (item === "UPC Code has been added to the database temporarily." || item === "UPC Code has been added to the unmarry list." || item === undefined)
               item = barcodeInputRange.offset(0, -1).getValue();
 
             item = item.split('\n');
@@ -2815,7 +2815,7 @@ function manualScan(e, spreadsheet, sheet)
             {
               var item = e.oldValue;
 
-              if (item === undefined)
+              if (item === "UPC Code has been added to the database temporarily." || item === "UPC Code has been added to the unmarry list." || item === undefined)
                 item = sheet.getRange(2, 1).getValue();
 
               item = item.split('\n');
@@ -2834,7 +2834,7 @@ function manualScan(e, spreadsheet, sheet)
             {
               var item = e.oldValue;
 
-              if (item === undefined)
+              if (item === "UPC Code has been added to the database temporarily." || item === "UPC Code has been added to the unmarry list." || item === undefined)
                 item = sheet.getRange(2, 1).getValue();
 
               item = item.split('\n');
@@ -2854,7 +2854,7 @@ function manualScan(e, spreadsheet, sheet)
           {
             var item = e.oldValue;
 
-            if (item === undefined)
+            if (item === "UPC Code has been added to the database temporarily." || item === "UPC Code has been added to the unmarry list." || item === undefined)
               item = barcodeInputRange.offset(0, -1).getValue();
 
             item = item.split('\n');
@@ -3303,7 +3303,8 @@ function manualScan(e, spreadsheet, sheet)
 
           if (lastRow <= 3) // There are no items on the manual counts page
             barcodeInputRange.setDataValidation(SpreadsheetApp.newDataValidation().requireValueInList([]).build())
-              .offset(0, 0, 2, 2).setValues([['', ''], [item[0] + '\nwill be added to the Manual Counts page at line :\n' + 4 + '\nCurrent Stock :\n' + item[1], '']]);
+              .offset( 1, 0, 1, 2).setValues([[item[0] + '\nwill be added to the Manual Counts page at line :\n' + 4 + '\nCurrent Stock :\n' + item[1], '']])
+              .offset(-1, 1, 1, 1).setValue('1 result found');
           else // There are existing items on the manual counts page
           {
             const manualCountsValues = manualCountsPage.getSheetValues(4, 1, lastRow - 3, 5);
@@ -3315,18 +3316,20 @@ function manualScan(e, spreadsheet, sheet)
                 const countedSince = getCountedSinceString(manualCountsValues[j][4])
                   
                 barcodeInputRange.setDataValidation(SpreadsheetApp.newDataValidation().requireValueInList([]).build())
-                  .offset(0, 0, 2, 2).setValues([['', ''], [item[0] + '\nwas found on the Manual Counts page at line :\n' + (j + 4) 
-                                                                    + '\nCurrent Stock :\n' + item[1] 
-                                                                    + '\nCurrent Manual Count :\n' + manualCountsValues[j][2] 
-                                                                    + '\nCurrent Running Sum :\n' + manualCountsValues[j][3]
-                                                                    + '\nLast Counted :\n' + countedSince, '']]);
+                  .offset(1, 0, 1, 2).setValues([[item[0] + '\nwas found on the Manual Counts page at line :\n' + (j + 4) 
+                                                          + '\nCurrent Stock :\n' + item[1] 
+                                                          + '\nCurrent Manual Count :\n' + manualCountsValues[j][2] 
+                                                          + '\nCurrent Running Sum :\n' + manualCountsValues[j][3]
+                                                          + '\nLast Counted :\n' + countedSince, '']])
+                  .offset(-1, 1, 1, 1).setValue('1 result found');
                 break; // Item was found on the manual counts page, therefore stop searching
               }
             }
 
             if (j === manualCountsValues.length) // Item was not found on the manual counts page
               barcodeInputRange.setDataValidation(SpreadsheetApp.newDataValidation().requireValueInList([]).build())
-                .offset(0, 0, 2, 2).setValues([['', ''], [item[0] + '\nwill be added to the Manual Counts page at line :\n' + (lastRow + 1) + '\nCurrent Stock :\n' + item[1], '']]);
+                .offset( 1, 0, 1, 2).setValues([[item[0] + '\nwill be added to the Manual Counts page at line :\n' + (lastRow + 1) + '\nCurrent Stock :\n' + item[1], '']])
+                .offset(-1, 1, 1, 1).setValue('1 result found');
           }
 
           sheet.getRange(2, 2).activate();
@@ -3389,12 +3392,50 @@ function manualScan(e, spreadsheet, sheet)
 
             const numResults = searchResults.length
 
-            if (numResults === 500)
+            if (numResults === 1) // If only 1 result is found, populate the manual scan with that item
+            {
+              const item = searchResults[0].split(' - Stock: ', 2)
+              const lastRow = manualCountsPage.getLastRow();
+
+              if (lastRow <= 3) // There are no items on the manual counts page
+                barcodeInputRange.setDataValidation(SpreadsheetApp.newDataValidation().requireValueInList([]).build())
+                  .offset( 1, 0, 1, 2).setValues([[item[0] + '\nwill be added to the Manual Counts page at line :\n' + 4 + '\nCurrent Stock :\n' + item[1], '']])
+                  .offset(-1, 1, 1, 1).setValue('1 result found');
+              else // There are existing items on the manual counts page
+              {
+                const manualCountsValues = manualCountsPage.getSheetValues(4, 1, lastRow - 3, 5);
+
+                for (var j = 0; j < manualCountsValues.length; j++) // Loop through the manual counts page
+                {
+                  if (manualCountsValues[j][0] === item[0]) // The description matches
+                  {
+                    const countedSince = getCountedSinceString(manualCountsValues[j][4])
+                      
+                    barcodeInputRange.setDataValidation(SpreadsheetApp.newDataValidation().requireValueInList([]).build())
+                      .offset(1, 0, 1, 2).setValues([[item[0] + '\nwas found on the Manual Counts page at line :\n' + (j + 4) 
+                                                              + '\nCurrent Stock :\n' + item[1] 
+                                                              + '\nCurrent Manual Count :\n' + manualCountsValues[j][2] 
+                                                              + '\nCurrent Running Sum :\n' + manualCountsValues[j][3]
+                                                              + '\nLast Counted :\n' + countedSince, '']])
+                      .offset(-1, 1, 1, 1).setValue('1 result found');
+                    break; // Item was found on the manual counts page, therefore stop searching
+                  }
+                }
+
+                if (j === manualCountsValues.length) // Item was not found on the manual counts page
+                  barcodeInputRange.setDataValidation(SpreadsheetApp.newDataValidation().requireValueInList([]).build())
+                    .offset(1, 0, 1, 2).setValues([[item[0] + '\nwill be added to the Manual Counts page at line :\n' + (lastRow + 1) + '\nCurrent Stock :\n' + item[1], '']])
+                    .offset(-1, 1, 1, 1).setValue('1 result found');
+              }
+
+              sheet.getRange(2, 2).activate();
+            }
+            else if (numResults === 500)
               barcodeInputRange.setDataValidation(SpreadsheetApp.newDataValidation().requireValueInList(searchResults).build())
                 .offset(0, 1).setValue('Too many results, 500 items displayed')
             else if (numResults !== 0) // Items found based on the user's search words
               barcodeInputRange.setDataValidation(SpreadsheetApp.newDataValidation().requireValueInList(searchResults).build())
-                .offset(0, 1).setValue((numResults > 1) ? numResults + ' results found' : '1 result found')
+                .offset(0, 1).setValue(numResults + ' results found')
             else // No items found based on the user's search words
               barcodeInputRange.setDataValidation(SpreadsheetApp.newDataValidation()
                   .requireValueInList(['No item descriptions contain all of the following search words: ' + searchWords.join(" ")]).build())
