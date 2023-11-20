@@ -2419,10 +2419,11 @@ function insertCarrierNotAssignedBanner()
   const values = sheet.getDataRange().getValues();
   const LAST_COL = sheet.getLastColumn();
   const bannerRow = [];
+  const lastRowIndex = sheet.getLastRow() - 1;
 
   conditional: if (true)
   {
-    for (var i = sheet.getLastRow() - 1; i >= 4; i--)
+    for (var i = lastRowIndex; i >= 3; i--)
     {
       if (values[i][BANNER_COL] === 'Carrier Not Assigned') // Carrier Not Assigned banner was found!
       {
@@ -2433,6 +2434,9 @@ function insertCarrierNotAssignedBanner()
               values[i][STATUS_COL] !== 'Discontinued' && values[i][STATUS_COL] !== 'Item Not Available' && values[i][STATUS_COL] !== 'Back to Shipped')
         bannerRow.push(i + 1); // Determine which row the banner should go
     }
+
+    if (bannerRow[0] == null && lastRowIndex == 3)
+      bannerRow.push(4)
 
     sheet.insertRowsAfter(bannerRow[0], 1).setRowHeight(bannerRow[0] + 1, 40).getRange(bannerRow[0] + 1, 1, 1, LAST_COL).clearDataValidations()
       .setBackgrounds([[...new Array(LAST_COL - 1).fill('#6d9eeb'), 'white']]).setFontColors([[...new Array(LAST_COL - 2).fill('white'), '#6d9eeb', 'white']])
