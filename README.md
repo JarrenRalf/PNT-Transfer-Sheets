@@ -4,3 +4,10 @@ In addition to handeling the transfer of products between the stores, the _Trans
 1. The _InfoCounts_, which identify which items have a negative inventory and therefore should be verified.
 2. The _Manual Counts_, which are items that have been specifically searched for on the _Item Search_ page, that have been added by a user to prompt employess to do a spot check of those items, regardless of recorded inventory values.
 3. During the process of ordering, for example, someone from a branch store may order 10 coils of rope, but their inventory value for that SKU indicates that they have 33 units but that number does not match the physical stock, so an employee enters in their true value, which for example could be 1, hence why they are ordering the 10 coils.
+
+Those are the primary functions of these sets of spreadsheets, however, with more than 5000 lines of original Google Apps Script (Javascript) code written, this spreadsheet is feature rich, especially for the primary inventory control manager.
+Some of executive features include the following:
+- Receiving every item that a is shipped by a particular carrier with 1 click.\
+- Handeling a UPC database that allows users to scan barcodes in order to add items to _Order_, _Shipped_, or _Manual Counts_ pages
+- Automatic formatting of each displayed page, because with multiple users, various aspects of the sheets change regularly.
+- 
