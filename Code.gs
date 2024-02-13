@@ -1404,27 +1404,31 @@ function clearInventory()
   numRowsRange.clearContent(); // Clear the number of rows on the inventory page
   
   dateStamp(3, 8, 1, itemSearchSheet); // Place a dateStamp on the item Search page
+  var itemNumber;
   
   const items = Utilities.parseCsv(DriveApp.getFilesByName("inventory.csv").next().getBlob().getDataAsString());
   const numRows = items.length;
   const sku = items[0].indexOf('Item #')
   const tritesQty = items[0].indexOf('Trites')
   const inflowData = Object.values(Utilities.parseCsv(DriveApp.getFilesByName("inFlow_StockLevels.csv").next().getBlob().getDataAsString()).reduce((acc, val) => {
+    itemNumber = val[0].split(' - ').pop().toString().toUpperCase();
     // Sum the quantities if item is in multiple locations
-    if (acc[val[0]]) acc[val[0]][1] = (inflow_conversions.hasOwnProperty(val[0])) ? Number(acc[val[0]][1]) + Number(val[4])*inflow_conversions[val[0]] : Number(acc[val[0]][1]) + Number(val[4]); 
+    if (acc[itemNumber]) acc[itemNumber][1] = (inflow_conversions.hasOwnProperty(itemNumber)) ? Number(acc[itemNumber][1]) + Number(val[4])*inflow_conversions[itemNumber] : Number(acc[itemNumber][1]) + Number(val[4]); 
     // Add the item to the new list if it contains the typical google sheets item format with "space - space"
-    else if (val[0].split(' - ').length > 4) acc[val[0]] = [val[0], (inflow_conversions.hasOwnProperty(val[0])) ? Number(val[4])*inflow_conversions[val[0]] : Number(val[4])]; 
+    else if (val[0].split(' - ').length > 4) acc[itemNumber] = [itemNumber, (inflow_conversions.hasOwnProperty(itemNumber)) ? Number(val[4])*inflow_conversions[itemNumber] : Number(val[4])]; 
     return acc;
   }, {}));
   var isInFlowItem;
 
+  spreadsheet.getSheetByName('Sheet30').getRange(1, 1, inflowData.length, inflowData[0].length).setValues(inflowData)
+
   if (isRichmondSpreadsheet(spreadsheet))
   {
     const data = items.map(col => {
-      isInFlowItem = inflowData.find(description => description[0].split(' - ').pop() == col[sku]) // Inflow sku at back
+      isInFlowItem = inflowData.find(item => item[0] == col[sku].toString().toUpperCase()) // Inflow sku at back
       col[tritesQty] = (isInFlowItem) ? isInFlowItem[1] : ''; // Add Trites inventory values if they are found in inFlow
 
-      return [col[0], col[1], null, col[2], col[3], col[4], col[5], col[sku], col[6]]
+      return [col[0], col[1], null, col[2], col[3], col[4], col[5], col[sku], col[6]];
     }) 
 
     data[0][tritesQty + 1] = "Trites (inFlow)";
@@ -1439,7 +1443,7 @@ function clearInventory()
   else
   {
     const data = items.map(col => {
-      isInFlowItem = inflowData.find(description => description[0].split(' - ').pop() == col[sku]) // Inflow sku at back
+      isInFlowItem = inflowData.find(item => item[0] == col[sku].toString().toUpperCase()) // Inflow sku at back
       col[tritesQty] = (isInFlowItem) ? isInFlowItem[1] : ''; // Add Trites inventory values if they are found in inFlow
 
       return [col[0], col[1], col[2], col[3], col[4], col[5], col[sku], col[6], col[7]]
