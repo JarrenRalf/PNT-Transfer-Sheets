@@ -1410,17 +1410,21 @@ function clearInventory()
   const numRows = items.length;
   const sku = items[0].indexOf('Item #')
   const tritesQty = items[0].indexOf('Trites')
-  const inflowData = Object.values(Utilities.parseCsv(DriveApp.getFilesByName("inFlow_StockLevels.csv").next().getBlob().getDataAsString()).reduce((acc, val) => {
-    itemNumber = val[0].split(' - ').pop().toString().toUpperCase();
-    // Sum the quantities if item is in multiple locations
-    if (acc[itemNumber]) acc[itemNumber][1] = (inflow_conversions.hasOwnProperty(itemNumber)) ? Number(acc[itemNumber][1]) + Number(val[4])*inflow_conversions[itemNumber] : Number(acc[itemNumber][1]) + Number(val[4]); 
-    // Add the item to the new list if it contains the typical google sheets item format with "space - space"
-    else if (val[0].split(' - ').length > 4) acc[itemNumber] = [itemNumber, (inflow_conversions.hasOwnProperty(itemNumber)) ? Number(val[4])*inflow_conversions[itemNumber] : Number(val[4])]; 
-    return acc;
-  }, {}));
-  var isInFlowItem;
+  const inflowData = Object.values(Utilities.parseCsv(DriveApp.getFilesByName("inFlow_StockLevels.csv").next().getBlob().getDataAsString()).reduce((sum, item) => {
+    itemNumber = item[0].split(' - ').pop().toString().toUpperCase(); // Get the SKU number from the beginning of the description
 
-  spreadsheet.getSheetByName('Sheet30').getRange(1, 1, inflowData.length, inflowData[0].length).setValues(inflowData)
+    // If the item already has a sum associate with this item Number, then this skus is put away in multiple locations, and therefore add up the quantities from all locations
+    if (sum[itemNumber]) // Inflow item might have a conversion factor associated with it so that the Price Unit in Adagio is consistent with the recorded quantity in inFlow
+      sum[itemNumber][1] = (inflow_conversions.hasOwnProperty(itemNumber)) ? Number(sum[itemNumber][1]) + Number(item[4])*inflow_conversions[itemNumber] : Number(sum[itemNumber][1]) + Number(item[4]); 
+
+    // Add the item to the new list if it contains the typical google sheets item format with "space - space" more than 4 times
+    else if (item[0].split(' - ').length > 4) // Inflow item might have a conversion factor associated with it so that the Price Unit in Adagio is consistent with the recorded quantity in inFlow
+      sum[itemNumber] = [itemNumber, (inflow_conversions.hasOwnProperty(itemNumber)) ? Number(item[4])*inflow_conversions[itemNumber] : Number(item[4])]; 
+
+    return sum; // Return the total inventory quantity for the item number so far
+  }, {}));
+  
+  var isInFlowItem;
 
   if (isRichmondSpreadsheet(spreadsheet))
   {
