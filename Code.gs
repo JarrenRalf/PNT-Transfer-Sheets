@@ -68,29 +68,40 @@ function doGet(e)
 }
 
 const inflow_conversions = {
-  '10010021FT - WEB: 210/60x3-1/4"X100md X200FM Body #21 -  - Twisted Tarred Nylon - FOOT': 1200,
-  '10100027 - WEB: 210/27x1-1/8"x200MDx105FMx235# -  - Twisted Tarred Nylon - POUND': 235, 
-  '101021027118 - WEB: 210/27x1-1/8"x100MDx 105FMS -  - Twisted Tarred Nylon - POUND': 226, 
-  '10110096 - WEB: 210/96 (6x16) x3"x100MDx50FMx230lbs -  - Cargo/Barrier - POUND': 230, 
-  '10120495FOOT - WEB: 210/224x3"x100MDxfoot ) #14x16 -  - Braided Tarred Nylon - FOOT': 150, 
-  '10210096 - WEB: 210/96x3-5/8"x25MDx100 FMS Braid k -  - Braided Tarred Nylon - POUND': 96,
-  '10500027FT - WEB: 210/27x 2"x400MDx foot GOLF -  - Golf - FOOT': 600, 
-  '10500030 - WEB: 3MM Braided  Knotted PE X4"X 100MD -  - Golf - POUND': 285,
-  '10500128 - WEB: 210/128x2"x50MDx100FMx250LBS - North Pacific - Hockey/Lacrosse - POUND': 250,
-  '10500144 - Black Cod Web 210/144 x 3in x 28md x 200 -  - Web - Miscellaneous - POUND': 375, 
-  '10500360 - WEB: #36 x 3"x34MD BROWN HD ACRYLIC -  - Golf - POUND': 300, 
-  '10501001FT - WEB: PNT BLACKBIRD 15mm Sq x 2m deep -  - Golf - FOOT': 328.084, 
-  '10503000 - WEB: #30 x 2"x50MD BLACK HD ACRYLIC COAT -  - Golf - POUND': 300, 
-  "10503600 - VEXAR L36 WEB for CRAB CAGE  (100'/ROLL) -  - Golf - FOOT": 100,
-  '10710010FT - WEB: 210/10x1/2"x800MDx100FMx235# RACHL -  - Raschel Knotless - FOOT': 600, 
-  '10782109038 - Rachel Black We 210/9 X 3/8" X465MDX 900 -  - Raschel Knotless - POUND': 235,
-  '24400000 - BLACK RUBBER MATTING RIBBED    3 \' WIDE - ERIKS - Mats & Tables - FOOT': 225,
-  'MN3-7 Vexar Oyster Tube Netting Black -  - Golf - FOOT - 10501000': 500,
-  'MN8-25 Vexar Oyster Tube Netting Red -  - Golf - FOOT - 10501002': 500,
-  '26014025 - GRADE 43 HIGH TEST GALV CHAIN 1/4" -  - Chain - FOOT': 500,
-  '21000001 - CHAIN: PROOF COIL 1/4" Hot Dipped Galv - VANGUARD - Chain - FOOT': 500,
-  '21000003 - CHAIN: PROOF COIL 3/8" Hot Dipped Galv - VANGUARD - Chain - FOOT': 400, 
-  '21000004 - CHAIN: PROOF COIL 1/2" Hot Dipped Galv - VANGUARD - Chain - FOOT': 200
+  'WEB: 210/60x3-1/4"X100md X200FM Body #21 -  - Twisted Tarred Nylon - FOOT - 10010021FT': 1200,
+  'WEB: 210/27x1-1/8"x200MDx105FMx235# -  - Twisted Tarred Nylon - POUND - 10100027': 235, 
+  'WEB: 210/27x1-1/8"x100MDx 105FMS -  - Twisted Tarred Nylon - POUND - 101021027118': 226, 
+  'WEB: 210/96 (6x16) x3"x100MDx50FMx230lbs -  - Cargo/Barrier - POUND - 10110096': 230, 
+  'WEB: 210/224x3"x100MDxfoot ) #14x16 -  - Braided Tarred Nylon - FOOT - 10120495FOOT': 150, 
+  'WEB: 210/96x3-5/8"x25MDx100 FMS Braid k -  - Braided Tarred Nylon - POUND - 10210096': 96,
+  'WEB: 210/27x 2"x400MDx foot GOLF -  - Golf - FOOT - 10500027FT': 600, 
+  'WEB: 210/144x3"x100MDx50Fx350#9x16 -  - Braided Tarred Nylon - POUND - 10120144': 330,
+  'WEB: 210/15x1-1/4"x200MD x foot -  - Twisted Tarred Nylon - FOOT - 10000015FT': 35.7,
+  '3MM Braided Knotted PE 4"x100MD 50F 285# -  - Soccer - POUND - 10500030': 285,
+  'WEB: 210/20x1/2"x800MDx100FM RASCHEL -  - Raschel Knotless - POUND - 10722000': 255,
+  'WEB: BRD KNOT 210/224 X 2-1/8" X foot -  - Web - Miscellaneous - FOOT - 10501416FT': 1, ////////////////////// not in access
+  'WEB:#30 x 2" x 150MD BLACK HD ACRYLIC -  - Golf - POUND - 10503150': 1, //////////////////////
+  'WEB: 210/128x2"x50MDx100FMx250LBS - North Pacific - Hockey/Lacrosse - POUND - 10500128': 250,
+  'Black Cod Web 210/144 x 3in x 28md x 200 -  - Web - Miscellaneous - POUND - 10500144': 375, 
+  'WEB: #36 x 3"x34MD BROWN HD ACRYLIC -  - Golf - POUND - 10500360': 1,  //////////////////////
+  'WEB: #36 x 3" x 102md BROWN HD ACRYLIC -  - Golf - POUND - 10500361' : 1,  //////////////////////
+  'WEB: PNT BLACKBIRD 15mm Sq x 2m deep -  - Golf - FOOT - 10501001FT': 328.084, 
+  'WEB: #30 x 2"x50MD BLACK HD ACRYLIC COAT -  - Golf - POUND - 10503000': 300, 
+  "VEXAR L36 WEB for CRAB CAGE  (100'/ROLL) -  - Golf - FOOT - 10503600": 100,
+  'WEB: 210/10x1/2"x800MDx100FMx235# RACHL -  - Raschel Knotless - FOOT - 10710010FT': 600, 
+  'Rachel Black We 210/9 X 3/8" X465MDX 900 -  - Raschel Knotless - POUND - 10782109038': 235,
+  "BLACK RUBBER MATTING RIBBED    3 ' WIDE - ERIKS - Mats & Tables - FOOT - 24400000": 225,
+  'MN3-7 Vexar Oyster Tube Netting Black -  - Golf - FOOT - 10501000': 1000,
+  'MN8-25 Vexar Oyster Tube Netting Red -  - Golf - FOOT - 10501002': 2000,
+  'NORPAC Dura Leadline 300 lbs/ 100 fm - NOVA BRAID - Gillnet Leadline - FATHOM - 17300008FM': 1, //////////////////////
+  'ROPE, QUIK SPLICE POLYTRON 1/2" -  - Seine Beachline 12 Strand Quick Splice - FOOT - 18150001': 1,  //////////////////////
+  'GRADE 43 HIGH TEST GALV CHAIN 1/4" -  - Chain - FOOT - 26014025': 500,
+  'GRADE 43 HIGH TEST GALV CHAIN 5/16" -  - Chain - FOOT - 26014516': 1,
+  'CHAIN: PROOF COIL 1/4" Hot Dipped Galv - VANGUARD - Chain - FOOT - 21000001': 500,
+  'CHAIN: PROOF COIL 3/8" Hot Dipped Galv - VANGUARD - Chain - FOOT - 21000003': 400, 
+  'CHAIN: PROOF COIL 1/2" Hot Dipped Galv - VANGUARD - Chain - FOOT - 21000004': 200,
+  'CHAIN: PROOF COIL 5/16" Hot Dipped Galv - VANGUARD - Chain - FOOT - 21000002': 1, //////////////////////////////
+  'CHAIN: PROOF COIL 5/8" Hot Dipped Galv - VANGUARD - Chain - FOOT - 21000005' : 150
 }
 
 /**
