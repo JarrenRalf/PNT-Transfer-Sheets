@@ -79,7 +79,7 @@ const inflow_conversions = {
   'WEB: 210/15x1-1/4"x200MD x foot -  - Twisted Tarred Nylon - FOOT - 10000015FT': 35.7,
   '3MM Braided Knotted PE 4"x100MD 50F 285# -  - Soccer - POUND - 10500030': 285,
   'WEB: 210/20x1/2"x800MDx100FM RASCHEL -  - Raschel Knotless - POUND - 10722000': 255,
-  'WEB: BRD KNOT 210/224 X 2-1/8" X foot -  - Web - Miscellaneous - FOOT - 10501416FT': 1, ////////////////////// not in access
+  'WEB: BRD KNOT 210/224 X 2-1/8" X foot -  - Web - Miscellaneous - FOOT - 10501416FT': 1, ////////////////////// 
   'WEB:#30 x 2" x 150MD BLACK HD ACRYLIC -  - Golf - POUND - 10503150': 1, //////////////////////
   'WEB: 210/128x2"x50MDx100FMx250LBS - North Pacific - Hockey/Lacrosse - POUND - 10500128': 250,
   'Black Cod Web 210/144 x 3in x 28md x 200 -  - Web - Miscellaneous - POUND - 10500144': 375, 
@@ -94,7 +94,7 @@ const inflow_conversions = {
   'MN3-7 Vexar Oyster Tube Netting Black -  - Golf - FOOT - 10501000': 1000,
   'MN8-25 Vexar Oyster Tube Netting Red -  - Golf - FOOT - 10501002': 2000,
   'NORPAC Dura Leadline 300 lbs/ 100 fm - NOVA BRAID - Gillnet Leadline - FATHOM - 17300008FM': 1, //////////////////////
-  'ROPE, QUIK SPLICE POLYTRON 1/2" -  - Seine Beachline 12 Strand Quick Splice - FOOT - 18150001': 1,  //////////////////////
+  'ROPE, QUIK SPLICE POLYTRON 1/2" -  - Seine Beachline 12 Strand Quick Splice - FOOT - 18150001': 600,
   'GRADE 43 HIGH TEST GALV CHAIN 1/4" -  - Chain - FOOT - 26014025': 500,
   'GRADE 43 HIGH TEST GALV CHAIN 5/16" -  - Chain - FOOT - 26014516': 1,
   'CHAIN: PROOF COIL 1/4" Hot Dipped Galv - VANGUARD - Chain - FOOT - 21000001': 500,
