@@ -1424,7 +1424,7 @@ function clearInventory()
   const sku = items[0].indexOf('Item #')
   const tritesQty = items[0].indexOf('Trites')
   const inflowData = Object.values(Utilities.parseCsv(DriveApp.getFilesByName("inFlow_StockLevels.csv").next().getBlob().getDataAsString()).reduce((sum, item) => {
-    itemNumber = item[0].split(' - ').pop().toString().toUpperCase(); // Get the SKU number from the beginning of the description
+    itemNumber = item[0].split(' - ').pop().toString().toUpperCase(); // Get the SKU number from the back of the description
 
     // If the item already has a sum associate with this item Number, then this skus is put away in multiple locations, and therefore add up the quantities from all locations
     if (sum[itemNumber]) // Inflow item might have a conversion factor associated with it so that the Price Unit in Adagio is consistent with the recorded quantity in inFlow
