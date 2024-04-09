@@ -46,6 +46,19 @@ function installedOnEdit(e)
 }
 
 /**
+ * This places an add-on menu on the Parksville and Rupert spreadsheets.
+ * 
+ * @param {Event} e : The event object 
+ */
+function onOpen(e)
+{
+  if (e.source.getName().split(" ")[1] !== 'Richmond')
+    SpreadsheetApp.getUi().createMenu('Carrier Not Assigned')
+      .addItem('Insert carrier not assigned banner', 'insertCarrierNotAssignedBanner')
+      .addItem('Move selected items', 'moveSelectedItemsFromCarrierNotAssigned').addToUi();
+}
+
+/**
  * This function is run when an html web app is launched. In our case, when the modal dialog box is produced at 
  * the point a user has clicked the Download inFlow Pick List button inorder to produce the csv file.
  * 
@@ -2731,6 +2744,7 @@ function manualScan(e, spreadsheet, sheet)
 {
   const manualCountsPage = spreadsheet.getSheetByName("Manual Counts");
   const barcodeInputRange = e.range;
+  Logger.log('THere was a scan')
 
   if (manualCountsPage.getRange(3, 7).isChecked()) // Manual Scanner is in "Add-One" mode
   {
@@ -3544,6 +3558,103 @@ function moveRow(e, spreadsheet, sheet, sheetName)
     {
       applyFullRowFormatting(sheet, row, numRows);
       dateStamp(row, 1, numRows);
+    }
+  }
+}
+
+/**
+ * This function moves the selected "Carrier Not Assigned" items to the chosen shipment.
+ * 
+ * @author Jarren Ralf
+ */
+function moveSelectedItemsFromCarrierNotAssigned()
+{
+  const ui = SpreadsheetApp.getUi();
+  const shippedSheet = SpreadsheetApp.getActiveSheet()
+
+  if (shippedSheet.getSheetName() !== 'Shipped')
+  {
+    ui.alert('You must be on the shipped page to run this function.');
+    SpreadsheetApp.getActive().getSheetByName('Shipped').activate();
+  }
+  else // The user is on the shipped sheet
+  {
+    const activeRanges = SpreadsheetApp.getActive().getActiveRangeList().getRanges();
+    const rangesToDelete = SpreadsheetApp.getActive().getActiveRangeList().getRanges().reverse(); // Delete them from the bottom up, otherwise row numbers will change
+    const numCols = shippedSheet.getLastColumn();
+    const currentShipments = shippedSheet.getRange(1, 1, shippedSheet.getLastRow(), numCols).getValues();
+    const currentShipmentList = currentShipments.filter(carrier => isNotBlank(carrier[11]) && carrier[11] === carrier[0]).map(shipment => shipment[0]);
+
+    if (currentShipmentList[currentShipmentList.length - 1] === 'Carrier Not Assigned')
+      currentShipmentList.pop(); // Remove Carrier Not Assigned 
+
+    const response = ui.prompt('Choose a shipment:\n\n' + currentShipmentList.map((shipment, i) => i.toString() + ': ' + shipment).join('\n') 
+      + '\n\nMissing carrier? Get Adrian to format the shipped page and run this function again.');
+
+    if (response.getSelectedButton() === ui.Button.OK)
+    {
+      const responseText = response.getResponseText();
+
+      if (isNotBlank(responseText))
+      {
+        const index = Number(responseText);
+
+        if (index > -1 && index < currentShipmentList.length) // Valid index selection
+        {
+          const chosenShipment = currentShipmentList[index];
+          const shipmentRow = currentShipments.findIndex(carrier => carrier[0] === chosenShipment) + 2;
+          var range, col, column_1, range_NumRows, items, backgroundColours_Dates, backgroundColours_Notes, richTextValues, notesRange, 
+            values = [], dateColours = [], notesColours = [], notesRichText = [], isCarrierNotAssigned = true;
+          
+          while (activeRanges.length > 0) // Loop through the active ranges
+          {
+            range = activeRanges.pop();
+            col = range.getColumn();
+            column_1 = 1 - col;
+            range_NumRows = range.getNumRows();
+            items = range.offset(0, column_1, range_NumRows, numCols).getValues().map(carrier => {if (carrier[9] !== 'Carrier Not Assigned') isCarrierNotAssigned = false; carrier[9] = chosenShipment; return carrier});
+            backgroundColours_Dates = range.offset(0, column_1, range_NumRows, 1).getBackgrounds();
+            notesRange = range.offset(0, 6 - col, range_NumRows, 1);
+            backgroundColours_Notes = notesRange.getBackgrounds();
+            richTextValues = notesRange.getRichTextValues();
+            
+            while (items.length > 0)
+            {
+              values.push(items.pop());
+              dateColours.push(backgroundColours_Dates.pop());
+              notesColours.push(backgroundColours_Notes.pop());
+              notesRichText.push(richTextValues.pop());
+            }
+
+            if (shipmentRow <= 3)
+              ui.alert('The following Carrier was not found:\n\n' + chosenShipment)
+          }
+
+          if (shipmentRow > 3)
+          {
+            if (isCarrierNotAssigned)
+            {
+              const numItems = values.length;
+
+              shippedSheet.insertRowsAfter(shipmentRow - 1, numItems).getRange(shipmentRow, 1, numItems, numCols).setValues(values.reverse());
+              applyFullRowFormatting(shippedSheet, shipmentRow, numItems, numCols - 1); 
+              shippedSheet.autoResizeRows(shipmentRow, numItems).getRange(shipmentRow, 1, numItems).setBackgrounds(dateColours.reverse())
+                .offset(0, 5, numItems).setBackgrounds(notesColours.reverse()).setRichTextValues(notesRichText.reverse())
+                .offset(0, 4, numItems).setDataValidation(shippedSheet.getRange('J3').getDataValidation())
+                .offset(0, 3, numItems).setDataValidation(null)
+                .offset(0, -12, numItems, numCols - 1).activate();
+
+              rangesToDelete.map(range => shippedSheet.deleteRows(numItems + range.getRow(), range.getNumRows()));
+            }
+            else
+              ui.alert('You may only select items with Shipment Status: Carrier Not Assigned.');
+          }
+        }
+        else
+          ui.alert('Your input: "' + index.toString() + '" was invalid.');
+      }
+      else
+        ui.alert('Your input was invalid.');
     }
   }
 }
