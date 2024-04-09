@@ -3469,7 +3469,64 @@ function manualScan(e, spreadsheet, sheet)
             else if (numResults !== 0) // Items found based on the user's search words
               barcodeInputRange.setDataValidation(SpreadsheetApp.newDataValidation().requireValueInList(searchResults).build())
                 .offset(0, 1).setValue(numResults + ' results found')
-            else // No items found based on the user's search words
+            else if (numSearchWords === 0 && isNumber(Number(searchWords[0])))
+            {
+                const lastRow = manualCountsPage.getLastRow();
+                const upcDatabase = spreadsheet.getSheetByName("UPC Database").getDataRange().getValues();
+
+                if (lastRow <= 3) // There are no items on the manual counts page
+                {
+                  for (var i = upcDatabase.length - 1; i >= 1; i--) // Loop through the UPC values
+                  {
+                    if (upcDatabase[i][0] == searchWords[0]) // UPC found
+                    {
+                      barcodeInputRange.offset(1, 0).setValue(upcDatabase[i][2] + '\nwill be added to the Manual Counts page at line :\n' + 4 + '\nCurrent Stock :\n' + upcDatabase[i][3]);
+                      break; // Item was found, therefore stop searching
+                    }
+                  }
+                }
+                else // There are existing items on the manual counts page
+                {
+                  const row = lastRow + 1;
+                  const manualCountsValues = manualCountsPage.getSheetValues(4, 1, row - 3, 5);
+
+                  for (var i = upcDatabase.length - 1; i >= 1; i--) // Loop through the UPC values
+                  {
+                    if (upcDatabase[i][0] == searchWords[0])
+                    {
+                      for (var j = 0; j < manualCountsValues.length; j++) // Loop through the manual counts page
+                      {
+                        if (manualCountsValues[j][0] === upcDatabase[i][2]) // The description matches
+                        {
+                          const countedSince = getCountedSinceString(manualCountsValues[j][4])
+                            
+                          barcodeInputRange.offset(0, 0, 2, 2).setValues([['', ''], [
+                            upcDatabase[i][2]  + '\nwas found on the Manual Counts page at line :\n' + (j + 4) 
+                                               + '\nCurrent Stock :\n' + upcDatabase[i][3] 
+                                               + '\nCurrent Manual Count :\n' + manualCountsValues[j][2] 
+                                               + '\nCurrent Running Sum :\n' + manualCountsValues[j][3]
+                                               + '\nLast Counted :\n' + countedSince, '']]);
+                          break; // Item was found on the manual counts page, therefore stop searching
+                        }
+                      }
+
+                      if (j === manualCountsValues.length) // Item was not found on the manual counts page
+                        barcodeInputRange.offset(0, 0, 2, 2).setValues([['', ''], [upcDatabase[i][2] + '\nwill be added to the Manual Counts page at line :\n' + row + '\nCurrent Stock :\n' + upcDatabase[i][3], '']]);
+
+                      break;
+                    }
+                  }
+                }
+
+                if (i === 0)
+                  barcodeInputRange.setDataValidation(SpreadsheetApp.newDataValidation()
+                      .requireValueInList(['No item descriptions contain all of the following search words: ' + searchWords.join(" ")]).build())
+                    .offset(0, 1).setValue('0 results found')
+                else
+                  barcodeInputRange.setDataValidation(SpreadsheetApp.newDataValidation().requireValueInList(['UPC Code Found in Database: ' + searchWords[0]]).build())
+                    .offset(1, 1).activate()
+            }
+            else // No items found based on the user's search words 
               barcodeInputRange.setDataValidation(SpreadsheetApp.newDataValidation()
                   .requireValueInList(['No item descriptions contain all of the following search words: ' + searchWords.join(" ")]).build())
                 .offset(0, 1).setValue('0 results found')
