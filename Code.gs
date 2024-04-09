@@ -575,7 +575,7 @@ function applyFullRowFormatting(sheet, row, numRows, numCols)
 
     borderRng.setFontSize(10).setFontLine('none').setFontWeight('bold').setFontStyle('normal').setFontFamily('Arial').setFontColor('black')
                   .setNumberFormats(numberFormats).setHorizontalAlignments(horizontalAlignments).setWrapStrategies(wrapStrategies)
-                  .setBorder(true, true, true, true,  null, true, 'black', SpreadsheetApp.BorderStyle.SOLID).setBackground('white');
+                  .setBorder(true, true, true, true,  false, true, 'black', SpreadsheetApp.BorderStyle.SOLID).setBackground('white');
 
     thickBorderRng.setBorder(null, true, null, true, false, null, 'black', SpreadsheetApp.BorderStyle.SOLID_THICK).setBackground(GREEN);
     shippedColRng.setBackground(YELLOW);
@@ -3843,14 +3843,13 @@ function moveSelectedItemsFromCarrierNotAssigned()
   }
   else // The user is on the shipped sheet
   {
-    const activeRanges = SpreadsheetApp.getActive().getActiveRangeList().getRanges();
-    const rangesToDelete = SpreadsheetApp.getActive().getActiveRangeList().getRanges().reverse(); // Delete them from the bottom up, otherwise row numbers will change
+    const spreadsheet = SpreadsheetApp.getActive()
+    const activeRanges = spreadsheet.getActiveRangeList().getRanges();
+    const rangesToDelete = spreadsheet.getActiveRangeList().getRanges().reverse(); // Delete them from the bottom up, otherwise row numbers will change
     const numCols = shippedSheet.getLastColumn();
-    const currentShipments = shippedSheet.getRange(1, 1, shippedSheet.getLastRow(), numCols).getValues();
-    const currentShipmentList = currentShipments.filter(carrier => isNotBlank(carrier[11]) && carrier[11] === carrier[0]).map(shipment => shipment[0]);
-
-    if (currentShipmentList[currentShipmentList.length - 1] === 'Carrier Not Assigned')
-      currentShipmentList.pop(); // Remove Carrier Not Assigned 
+    const dataValidationSheet = spreadsheet.getSheetByName('Data Validation');
+    const allCarriers = dataValidationSheet.getSheetValues(1, 1, dataValidationSheet.getLastRow(), 3)
+    const currentShipmentList = [...new Set(allCarriers.map(carrier => carrier[0]).flat().filter(carrier => isNotBlank(carrier)))];
 
     const response = ui.prompt('Choose a shipment:\n\n' + currentShipmentList.map((shipment, i) => i.toString() + ': ' + shipment).join('\n') 
       + '\n\nMissing carrier? Get Adrian to format the shipped page and run this function again.');
@@ -3866,13 +3865,37 @@ function moveSelectedItemsFromCarrierNotAssigned()
         if (index > -1 && index < currentShipmentList.length) // Valid index selection
         {
           const chosenShipment = currentShipmentList[index];
-          const shipmentRow = currentShipments.findIndex(carrier => carrier[0] === chosenShipment) + 2;
+          var shipmentRow = allCarriers.find(carrier => carrier[1] === chosenShipment)[2];
           var range, col, column_1, range_NumRows, items, backgroundColours_Dates, backgroundColours_Notes, richTextValues, notesRange, 
-            values = [], dateColours = [], notesColours = [], notesRichText = [], isCarrierNotAssigned = true;
+            values = [], dateColours = [], notesColours = [], notesRichText = [], isCarrierNotAssigned = true, isNewShipment = false;
+
+          if (typeof shipmentRow === 'string') // We must create a new carrier line
+          {
+            isNewShipment = true;
+            shipmentRow = Number(shipmentRow.replace(/^\D+/g,'')); // Convert the string to a number
+            const cols = numCols - 1;
+            shipmentRow++;
+            shippedSheet.insertRowAfter(shipmentRow - 1).setRowHeight(shipmentRow, 40)
+              .getRange(shipmentRow, 1, 1, cols)
+                .setBackgrounds([new Array(cols).fill('#6d9eeb')])
+                .setFontColors([[...new Array(cols - 1).fill('white'), '#6d9eeb']])
+                .setFontSizes([new Array(cols).fill(14)])
+                .setFontLine('none').setFontWeight('bold').setFontStyle('normal').setFontFamily('Arial')
+                .setHorizontalAlignments([new Array(cols).fill('left')])
+                .setWrapStrategies([new Array(cols).fill(SpreadsheetApp.WrapStrategy.OVERFLOW)])
+                .setDataValidations([new Array(cols).fill(null)])
+                .setBorder(true, true, true, true, null, null)
+                .setValues([[chosenShipment, ...new Array(9).fill(null), 'via']])
+              .offset(0,  0, 1, cols - 1).merge()
+              .offset(0, 12, 1, 1).setDataValidation(shippedSheet.getRange(3, 13).getDataValidation())
+              
+          }
+
+          shipmentRow++;
           
           while (activeRanges.length > 0) // Loop through the active ranges
           {
-            range = activeRanges.pop();
+            range = (isNewShipment) ? activeRanges.pop().offset(1, 0) : activeRanges.pop();
             col = range.getColumn();
             column_1 = 1 - col;
             range_NumRows = range.getNumRows();
@@ -3900,15 +3923,25 @@ function moveSelectedItemsFromCarrierNotAssigned()
             {
               const numItems = values.length;
 
-              shippedSheet.insertRowsAfter(shipmentRow - 1, numItems).getRange(shipmentRow, 1, numItems, numCols).setValues(values.reverse());
+              shippedSheet.insertRowsBefore(shipmentRow, numItems).getRange(shipmentRow, 1, numItems, numCols).setValues(values.reverse());
               applyFullRowFormatting(shippedSheet, shipmentRow, numItems, numCols - 1); 
               shippedSheet.autoResizeRows(shipmentRow, numItems).getRange(shipmentRow, 1, numItems).setBackgrounds(dateColours.reverse())
-                .offset(0, 5, numItems).setBackgrounds(notesColours.reverse()).setRichTextValues(notesRichText.reverse())
-                .offset(0, 4, numItems).setDataValidation(shippedSheet.getRange('J3').getDataValidation())
-                .offset(0, 3, numItems).setDataValidation(null)
+                .offset(0,   5, numItems).setBackgrounds(notesColours.reverse()).setRichTextValues(notesRichText.reverse())
+                .offset(0,   4, numItems).setDataValidation((isNewShipment) ? 
+                  shippedSheet.getRange(3, 10).getDataValidation().copy().requireValueInRange(dataValidationSheet.getRange("$D$1:$D")).build() : 
+                  shippedSheet.getRange(3, 10).getDataValidation())
+                .offset(0,   3, numItems).setDataValidation(null)
                 .offset(0, -12, numItems, numCols - 1).activate();
 
-              rangesToDelete.map(range => shippedSheet.deleteRows(numItems + range.getRow(), range.getNumRows()));
+              rangesToDelete.map(range => {
+                if (isNewShipment)
+                {
+                  range = range.offset(1, 0);
+                  shippedSheet.deleteRows(numItems + range.getRow(), range.getNumRows()) 
+                }
+                else
+                  shippedSheet.deleteRows(numItems + range.getRow(), range.getNumRows())
+              });
             }
             else
               ui.alert('You may only select items with Shipment Status: Carrier Not Assigned.');
