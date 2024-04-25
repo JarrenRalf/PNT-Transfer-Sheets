@@ -2875,8 +2875,10 @@ function manualScan(e, spreadsheet, sheet)
               const marriedItem = item[0].split(' - ');
               const upcDatabaseSheet = spreadsheet.getSheetByName("UPC Database");
               const manAddedUPCsSheet = spreadsheet.getSheetByName("Manually Added UPCs");
-              manAddedUPCsSheet.getRange(manAddedUPCsSheet.getLastRow() + 1, 1, 1, 4).setNumberFormat('@').setValues([[marriedItem[0], upcString[1], marriedItem[4], item[0]]]);
-              upcDatabaseSheet.getRange(upcDatabaseSheet.getLastRow() + 1, 1, 1, 4).setNumberFormat('@').setValues([[upcString[1], marriedItem[4], item[0], item[4]]]); 
+              const sku = marriedItem.pop()
+              const uom = marriedItem.pop()
+              manAddedUPCsSheet.getRange(manAddedUPCsSheet.getLastRow() + 1, 1, 1, 4).setNumberFormat('@').setValues([[sku, upcString[1], uom, item[0]]]);
+              upcDatabaseSheet.getRange(upcDatabaseSheet.getLastRow() + 1, 1, 1, 4).setNumberFormat('@').setValues([[upcString[1], uom, item[0], item[4]]]); 
               barcodeInputRange.setValue('UPC Code has been added to the database temporarily.')
               sheet.getRange(2, 1).activate();
             }
@@ -3126,8 +3128,10 @@ function manualScan(e, spreadsheet, sheet)
                 const marriedItem = item[0].split(' - ');
                 const upcDatabaseSheet = spreadsheet.getSheetByName("UPC Database");
                 const manAddedUPCsSheet = spreadsheet.getSheetByName("Manually Added UPCs");
-                manAddedUPCsSheet.getRange(manAddedUPCsSheet.getLastRow() + 1, 1, 1, 4).setNumberFormat('@').setValues([[marriedItem[0], upc, marriedItem[4], item[0]]]);
-                upcDatabaseSheet.getRange(upcDatabaseSheet.getLastRow() + 1, 1, 1, 4).setNumberFormat('@').setValues([[upc, marriedItem[4], item[0], item[4]]]); 
+                const sku = marriedItem.pop()
+                const uom = marriedItem.pop()
+                manAddedUPCsSheet.getRange(manAddedUPCsSheet.getLastRow() + 1, 1, 1, 4).setNumberFormat('@').setValues([[sku, upc, uom, item[0]]]);
+                upcDatabaseSheet.getRange(upcDatabaseSheet.getLastRow() + 1, 1, 1, 4).setNumberFormat('@').setValues([[upc, uom, item[0], item[4]]]); 
                 barcodeInputRange.setValue('UPC Code has been added to the database temporarily.')
                 sheet.getRange(2, 1).activate();
               }
