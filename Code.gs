@@ -255,15 +255,16 @@ function addNewItem()
 function addOneMode()
 {
   const range = SpreadsheetApp.getActiveSheet().getRange(3, 7);
+
   if (range.isChecked())
   {
-    range.uncheck()
-    ss.toast('Off','Add-One Mode')
+    range.uncheck();
+    SpreadsheetApp.getActive().toast('Off','Add-One Mode');
   }
   else
   {
     range.check();
-    ss.toast('On','Add-One Mode')
+    SpreadsheetApp.getActive().toast('On','Add-One Mode');
   } 
 }
 
