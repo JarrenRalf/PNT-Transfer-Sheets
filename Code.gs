@@ -3586,16 +3586,19 @@ function moveRow(e, spreadsheet, sheet, sheetName)
         {
           rowValues[0][8] = 'N/A';
           transferRow(sheet, shippedSheet, row, rowValues, numCols, true);
+          sendEmailToBranchStore(value, row, rowValues, sheet, spreadsheet)
         }
         else if (value == "Discontinued") // The cell is set to "Discontinued"  
         {
           rowValues[0][8] = 'Discont';
           transferRow(sheet, shippedSheet, row, rowValues, numCols, true);
+          sendEmailToBranchStore(value, row, rowValues, sheet, spreadsheet)
         }
         else if (value == "Order From Distributor") // The cell is set to "Order From Distributor"  
         {
           rowValues[0][8] = 'Reorder';
           transferRow(sheet, shippedSheet, row, rowValues, numCols, true);
+          sendEmailToBranchStore(value, row, rowValues, sheet, spreadsheet)
         }
         else // This means order and shipped quantities need to be checked
         {
@@ -4005,15 +4008,16 @@ function moveToUpcDatabse()
  * This function takes the information from the Item Search or Manual Counts page and the user's recently scanned barcode in the created date column and it 
  * populates the Manual Scan page with the relevant data need to update the count of the particular item.
  * 
- * @param {Spreadsheet}  ss    : The active spreadsheet.
- * @param {Sheet}       sheet  : The active sheet.
- * @param {Number}      rowNum : The row number of the current item.
+ * @param {Spreadsheet}   ss          : The active spreadsheet.
+ * @param {Sheet}        sheet        : The active sheet.
+ * @param {Number}       rowNum       : The row number of the current item.
+ * @param {String} newItemDescription : The new description that has been added
  * @author Jarren Ralf
  */
 function populateManualScan(ss, sheet, rowNum, newItemDescription)
 {
-  const barcodeInputRange = SpreadsheetApp.getActive().getSheetByName('Manual Scan').getRange(1, 1);
-  const manualCountsPage = SpreadsheetApp.getActive().getSheetByName("Manual Counts");
+  const barcodeInputRange = ss.getSheetByName('Manual Scan').getRange(1, 1);
+  const manualCountsPage = ss.getSheetByName("Manual Counts");
   const currentStock = (sheet.getSheetName() === 'Item Search') ? 2 : 1;
   const lastRow = manualCountsPage.getLastRow();
   var itemValues = (sheet.getSheetName() === 'Item Search') ? sheet.getSheetValues(rowNum, 2, 1, 3)[0] : sheet.getSheetValues(rowNum, 1, 1, 2)[0];
@@ -5060,6 +5064,42 @@ function search(e, spreadsheet, sheet)
     }
     spreadsheet.toast('Searching Complete.')
   }
+}
+
+/**
+ * This function sends an email to the relevant people at the particular branch store when the status of an item on the Order page is changed to either
+ * Order From Distributor or Discontinued or Item Not Available. 
+ * 
+ * @param {String}         status   : The status of the item.
+ * @param {Number}          row     : The row on the order sheet that has had the status change.
+ * @param {String[]}     rowValues  : All of the values from the row that had the status change.
+ * @param {Sheet}          sheet    : The order sheet.
+ * @param {Spreadsheet} spreadsheet : The active spreadsheet.
+ * @author Jarren Ralf
+ */
+function sendEmailToBranchStore(status, row, rowValues, sheet, spreadsheet)
+{
+  const htmlTemplate = HtmlService.createTemplateFromFile('shipmentStatusChangeEmail');
+  htmlTemplate.orderDateBackgroundColour = sheet.getRange(row, 1).getBackground();
+  htmlTemplate.notesBackgroundColour = sheet.getRange(row, 6).getBackground();
+  htmlTemplate.orderDate = Utilities.formatDate(rowValues[0][0], spreadsheet.getSpreadsheetTimeZone(), "dd MMM yyyy");
+  htmlTemplate.enteredBy = rowValues[0][1];
+  htmlTemplate.qty = rowValues[0][2];
+  htmlTemplate.uom = rowValues[0][3];
+  htmlTemplate.description = rowValues[0][4];
+  htmlTemplate.notes = rowValues[0][5];
+  htmlTemplate.currentStock = rowValues[0][6];
+  htmlTemplate.actualStock = rowValues[0][7];
+  htmlTemplate.shipmentStatus = status;
+  htmlTemplate.url = spreadsheet.getUrl() + '#gid=' + spreadsheet.getSheetByName('Shipped').getSheetId();
+
+  MailApp.sendEmail({
+    to: (isParksvilleSpreadsheet(spreadsheet)) ? 
+          "eryn@pacificnetandtwine.com, lodgesales@pacificnetandtwine.com, noah@pacificnetandtwine.com, shane@pacificnetandtwine.com, pntparksville@gmail.com, parksville@pacificnetandtwine.com"
+        : "pr@pacificnetandtwine.com, pntrupert@gmail.com",
+    subject: "Shipment Status Change on the Transfer Sheet: " + status,
+    htmlBody: htmlTemplate.evaluate().getContent(),
+  });
 }
 
 /**
