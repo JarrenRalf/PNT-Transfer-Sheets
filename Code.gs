@@ -2446,6 +2446,32 @@ function getRunTime(startTime)
 }
 
 /**
+ * This function take a list of selected items and it sorts the items with their corresponding hoochies and returns an object with the corresponding hoochie sku prefix
+ * as the object key or else adds the non-hoochie item to be accessed with the key: "other".
+ * 
+ * @param {String[][]} hoochies     : The list of hoochies and any corresponding data.
+ * @param {Number} descriptionIndex : The index number of the column that contains the google description.
+ * @return {Object} Returns an object containing sets of multi-arrays with each
+ * @author Jarren Ralf
+ */
+function groupHoochieTypes(hoochies, descriptionIndex)
+{
+  const groupedHoochies = {'16060005': [], '16010005': [], '16050005': [], '16020000': [], '16020011': [], 
+                           '16020010': [], '16060065': [], '16060010': [], '16070000': [], '16075300': [],   
+                           '16070975': [], '16030000': [], '16060175': [], '16200030': [], '16200000': [], 
+                           '16200025': [], '16200061': [], '16200065': [], '16200021': [], '16200022': [], "other": []};
+  
+  hoochies.map(hoochie => {
+    if (groupedHoochies[hoochie[descriptionIndex].split(" - ").pop().toString().substring(0, 8)] == null)
+      groupedHoochies["other"].push(hoochie)
+    else
+      groupedHoochies[hoochie[descriptionIndex].split(" - ").pop().toString().substring(0, 8) || "other"].push(hoochie)
+  })
+
+  return groupedHoochies;
+}
+
+/**
 * This function inserts the Carrier Not Assigned banner on the shipped sheet.
 *
 * @author Jarren Ralf
@@ -5176,7 +5202,7 @@ function sendEmailToTrites()
                   .setTextStyle(richText_Notes_Runs[0][0], richText_Notes_Runs[0][1], richText_Notes_Runs[0][2])
                   .setTextStyle(fullTextLength + 1, fullTextLength + emailTimestamp.length, emailTimestamp_TextStyle)
                   .build()] 
-                : [SpreadsheetApp.newRichTextValue().setText(emailTimestamp).setTextStyle(emailTimestamp_TextStyle).build()] 
+                : [SpreadsheetApp.newRichTextValue().setText("*Email Sent to Trites on " + Utilities.formatDate(new Date(), timeZone, "dd MMM yyyy")+"*").setTextStyle(emailTimestamp_TextStyle).build()] 
             default:
               return [note_RichText];
           }
@@ -5206,7 +5232,7 @@ function sendEmailToTrites()
 
     MailApp.sendEmail({
       to: "triteswarehouse@pacificnetandtwine.com, scottnakashima@hotmail.com",
-      cc: "mark@pacificnetandtwine.com, warehouse@pacificnetandtwine.com, adrian@pacificnetandtwine.com",
+      cc: "mark@pacificnetandtwine.com, warehouse@pacificnetandtwine.com",
       subject: pntStoreLocation + " store has ordered the following items. Do you have any of them at Trites?",
       htmlBody: htmlOutput.getContent(),
     });
@@ -5254,7 +5280,6 @@ function sortByCreatedDate_Richmond(a, b)
   return (a[8] === b[8]) ? 0 : (a[8] < b[8]) ? 1 : -1;
 }
 
-
 /**
 * Sorts data by the created date of the product
 *
@@ -5266,6 +5291,91 @@ function sortByCreatedDate_Richmond(a, b)
 function sortByCountedDate(a, b)
 {
   return (a[3] === b[3]) ? 0 : (a[3] < b[3]) ? -1 : 1;
+}
+
+/**
+ * This function takes a set of hoochies and it orders them alpha-numerically.
+ * 
+ * @param {String[][]} hoochies     : The list of hoochies and any corresponding data.
+ * @param {Number} descriptionIndex : The index number of the column that contains the google description.
+ * @param {String}  hoochiePrefix   : The prefix of the SKU number which denotes the type of hoochie.
+ * @return {String[][]} Returns the list of hoochies sorted alpha-numerically.
+ * @author Jarren Ralf
+ */
+function sortHoochies(hoochies, descriptionIndex, hoochiePrefix)
+{
+  const splitParameter = {'16060005': '4-1/4"',   '16010005': 'CUTTLEFISH', '16050005': 'NEEDLEFISH', '16020000': 'BAIT',     '16020011': 'BAIT', 
+                          '16020010': 'SWIVL',    '16060065': '6-1/2"',     '16060010': '10"',        '16070000': '6"',       '16075300': '6.7"',   
+                          '16070975': '1/2"',     '16030000': 'MACKERAL',   '16060175': '1-3/4"',     '16200030': '4-1/4"',   '16200000': '4-3/4', 
+                          '16200025': 'HOOCHIE',  '16200061': 'BAIT',       '16200065': 'BAIT',       '16200021': 'SARDINE',  '16200022': '2.5"'};
+  var matchA, matchB;
+  
+  const values = hoochies.sort((a, b) =>
+  {
+    // Logger.log(a[descriptionIndex].split(" - ", 1)[0].split(splitParameter[hoochiePrefix], 2))
+    // Logger.log(b[descriptionIndex].split(" - ", 1)[0].split(splitParameter[hoochiePrefix], 2))
+
+    if (hoochiePrefix !== 'other') // Sort hoochies
+    {
+      // Regex to find the prefix letters, then number, then the suffix letters followed by the secondary number e.g. [M35WPS, M, 35, WPS, ] or [J66-1, J, 66, -, 1]
+      matchA = a[descriptionIndex].split(" - ", 1)[0].split(splitParameter[hoochiePrefix], 2)[1].trim().match(/(\D*)([\d\.]*)(\D*)([\d\.]*)/);
+      matchB = b[descriptionIndex].split(" - ", 1)[0].split(splitParameter[hoochiePrefix], 2)[1].trim().match(/(\D*)([\d\.]*)(\D*)([\d\.]*)/);
+
+      if (parseInt(matchA[2]) === parseInt(matchB[2])) // If the numerals are the same
+        if (matchA[1] === matchB[1]) // If the prefix letters are the same
+          if (matchA[3] === matchB[3]) // If the suffix letters are the same
+            return parseInt(matchA[4]) - parseInt(matchB[4]); // If the numerals and letters are all the same, sort by the secondary number if there is one
+          else
+            return matchA[3].localeCompare(matchB[3]); // If the numerals and prefix letters are the same, sort by the suffix letters
+        else
+          return matchA[1].localeCompare(matchB[1]); // If numerals are equal, sort alphabetically by the prefix letters
+      else if (matchA[2] === '') // If the numerals are the blank
+        return 1;
+      else if (matchB[2] === '') // If the numerals are the blank
+        return -1;
+      else
+        return parseInt(matchA[2]) - parseInt(matchB[2]); // Sort numerically
+    }
+    else // Sort non-hoochies
+    {
+      matchA = a[descriptionIndex].split(" - ");
+      matchB = b[descriptionIndex].split(" - ");
+
+      if (matchA[matchA.length - 4] === matchB[matchA.length - 4])   // If the vendors are the same
+        if (matchA[matchA.length - 3] === matchB[matchA.length - 3]) // If the categories are the same
+          return matchA[matchA.length - 1].localeCompare(matchB[matchA.length - 1]) // If the vendors and categories are the same, sort by the skus
+        else
+          return matchA[matchA.length - 3].localeCompare(matchB[matchA.length - 3]) // If the vendors are the same, sort by the categories
+      else
+        return matchA[matchA.length - 4].localeCompare(matchB[matchA.length - 4]) // Sort by the vendors
+    }
+  })
+
+  return values;
+}
+
+/**
+ * This function takes the selected items on the Manual Counts page and it sorts them. If they are hoochies, then it groups them together and sorts them alpha-numerically.
+ * If they are non-hoochies, then it sorts by vendor first, then category, and then by SKU number
+ * 
+ * @author Jarren Ralf
+ */
+function sort_ManualCounts()
+{
+  const activeRange = SpreadsheetApp.getActiveRange();
+
+  if (activeRange.getRow() > 3)
+  {
+    const range = activeRange.offset(0, 1 - activeRange.getColumn(), activeRange.getNumRows(), SpreadsheetApp.getActiveSheet().getMaxColumns());
+    const groupedItems = groupHoochieTypes(range.getValues(), 0)
+    const items = [];
+
+    Object.keys(groupedItems).forEach(key => items.push(...sortHoochies(groupedItems[key], 0, key)));
+
+    range.setValues(items)
+  }
+  else
+    Browser.msgBox('Select the items that you want sorted.')
 }
 
 /**
