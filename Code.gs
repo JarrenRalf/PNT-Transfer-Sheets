@@ -1833,13 +1833,38 @@ function copySelectedValues(sheet, startRow, numCols, qtyCol, isInfoCountsPage, 
       sheets[0].getRange(sheets[0].getLastRow() + 1, 1, numItems, numCols).setNumberFormat('@').setValues(upcTemporaryValues);
     }
 
-    sheet.getRange(startRow, startCol, numItems, itemVals[0].length).setNumberFormat('@').setValues(itemVals); // Move the item values to the destination sheet
+    if (sheet.getSheetName() !== 'Manual Counts') 
+      sheet.getRange(startRow, startCol, numItems, itemVals[0].length).setNumberFormat('@').setValues(itemVals); // Move the item values to the destination sheet
+    else // Moving items to the Manual Counts page
+    {
+      if (startRow > 4) // There are existing items on the Manual Counts page
+      {
+        // Retrieve the existing items and add them to the new items
+        const groupedItems = groupHoochieTypes(sheet.getSheetValues(4, startCol, startRow - 4, sheet.getMaxColumns()).concat(itemVals.map(val => [...val, '', '', '', '', ''])), 0)
+        const items = [];
+
+        Object.keys(groupedItems).forEach(key => items.push(...sortHoochies(groupedItems[key], 0, key)));
+
+        sheet.getRange(4, startCol, items.length, items[0].length).setNumberFormat('@').setValues(items); // Move the item values to the destination sheet
+      }
+      else
+      {
+        const groupedItems = groupHoochieTypes(itemVals, 0)
+        const items = [];
+
+        Object.keys(groupedItems).forEach(key => items.push(...sortHoochies(groupedItems[key], 0, key)));
+
+        sheet.getRange(startRow, startCol, numItems, items[0].length).setNumberFormat('@').setValues(items); // Move the item values to the destination sheet
+      }
+    }
 
     if (!isInventoryPage && !isUpcPage) 
     {
       const nCols = (sheet.getSheetName() === 'Manual Counts') ? 7 : 11;
       applyFullRowFormatting(sheet, startRow, numItems, nCols); // Apply the proper formatting
-      sheet.getRange(startRow, qtyCol).activate();              // Go to the quantity column on the destination sheet
+      
+      if (sheet.getSheetName() !== 'Manual Counts') 
+        sheet.getRange(startRow, qtyCol).activate(); // Go to the quantity column on the destination sheet
       
       // If we are moving items onto the transfer pages, set the ordered date
       if (isOrderPage || isItemsToRichPage)
