@@ -1837,10 +1837,10 @@ function copySelectedValues(sheet, startRow, numCols, qtyCol, isInfoCountsPage, 
       sheet.getRange(startRow, startCol, numItems, itemVals[0].length).setNumberFormat('@').setValues(itemVals); // Move the item values to the destination sheet
     else // Moving items to the Manual Counts page
     {
-      if (startRow > 4) // There are existing items on the Manual Counts page
+      if (startRow > 3) // There are existing items on the Manual Counts page
       {
         // Retrieve the existing items and add them to the new items
-        const groupedItems = groupHoochieTypes(sheet.getSheetValues(4, startCol, startRow - 4, sheet.getMaxColumns()).concat(itemVals.map(val => [...val, '', '', '', '', ''])), 0)
+        const groupedItems = groupHoochieTypes(sheet.getSheetValues(4, startCol, startRow - 3, sheet.getMaxColumns()).concat(itemVals.map(val => [...val, '', '', '', '', ''])), 0)
         const items = [];
 
         Object.keys(groupedItems).forEach(key => items.push(...sortHoochies(groupedItems[key], 0, key)));
