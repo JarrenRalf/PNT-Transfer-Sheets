@@ -282,7 +282,7 @@ function addToAllManualCountsPages()
 {
   const spreadsheets =  [SpreadsheetApp.openById('1IEJfA5x7sf54HBMpCz3TAosJup4TrjXdUOqm4KK3t9c'), // Rupert
                          SpreadsheetApp.openById('181NdJVJueFNLjWplRNsgNl0G-sEJVW3Oy4z9vzUFrfM'), // Parksville
-                         ss] // Richmond
+                         SpreadsheetApp.getActive()] // Richmond
   const itemSearchSheet = spreadsheets[2].getSheetByName('Item Search')
   var activeRanges = itemSearchSheet.getActiveRangeList().getRanges(); // The selected ranges on the item search sheet
   var itemValues = [[[]]], firstRows = [], lastRows = [], items, manualCountsSheet, finalRow, startRow;
@@ -826,7 +826,7 @@ function applyFullSpreadsheetFormatting(spreadsheet, sheets)
         spreadsheet.setNamedRange('Progress_ManualCounts', sheets[j].getRange('B3'));
         spreadsheet.setNamedRange('Remaining_ManualCounts', sheets[j].getRange('C1'));
         headerValues = [[  Store_Name + ' Manual Counts', '=COUNTA($C$4:$C)', '=COUNTA($A$4:$A)-Completed_ManualCounts', 'Scanning Data', '', 'Inflow Data', ''], 
-                        ['Sku# - Description - Category - UoM', 'Current Count', 'New Count', 'Running Sum', 'Last Scan Time (ms)', 'Location', 'Quantity'], 
+                        ['Description - Vendor - Category - UoM - Sku#', 'Current Count', 'New Count', 'Running Sum', 'Last Scan Time (ms)', 'Location', 'Quantity'], 
                         ['', '=Completed_ManualCounts&\"/\"&(Completed_ManualCounts + Remaining_ManualCounts)', '', '', '', '', '']];
         sheets[j].hideColumns(4, 4);
         numberFormats[2][6] = '#';
@@ -837,7 +837,7 @@ function applyFullSpreadsheetFormatting(spreadsheet, sheets)
         spreadsheet.setNamedRange('Progress_InfoCounts', sheets[j].getRange('B3'));
         spreadsheet.setNamedRange('Remaining_InfoCounts', sheets[j].getRange('C1'));
         headerValues = [['New ' + Store_Name + ' Counts', '=COUNTA($C$4:$C$' + lastRow + ')', '=' + numRows + '-Completed_InfoCounts'], 
-                        ['Sku# - Description - Category - UoM', 'Current Count', 'New Count'], 
+                        ['Description - Vendor - Category - UoM - Sku#', 'Current Count', 'New Count'], 
                         ['', '=Completed_InfoCounts&\"/\"&(Completed_InfoCounts+Remaining_InfoCounts)', '']];
       }
 
