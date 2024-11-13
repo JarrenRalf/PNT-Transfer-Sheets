@@ -334,8 +334,6 @@ function addToAllManualCountsPages()
 
         Object.keys(groupedItems).forEach(key => items.push(...sortHoochies(groupedItems[key], 0, key)));
 
-        Logger.log(items)
-
         manualCountsSheet.getRange(4, 1, items.length, items[0].length).setNumberFormat('@').setValues(items); // Move the item values to the destination sheet
         applyFullRowFormatting(manualCountsSheet, 4, items.length, 7); // Apply the proper formatting
       }
@@ -1483,7 +1481,7 @@ function clearInventory()
   if (isRichmondSpreadsheet(spreadsheet))
   {
     const data = items.map(col => {
-      isInFlowItem = inflowData.find(item => item[0] == col[sku].toString().toUpperCase()) // Inflow sku at back
+      isInFlowItem = inflowData.find(item => item[0].split(' - ').pop().toUpperCase() == col[sku].toString().toUpperCase()) // Inflow sku at back
       col[tritesQty] = (isInFlowItem) ? isInFlowItem[1] : ''; // Add Trites inventory values if they are found in inFlow
 
       return [col[0], col[1], null, col[2], col[3], col[4], col[5], col[sku], col[6]];
@@ -1501,7 +1499,7 @@ function clearInventory()
   else
   {
     const data = items.map(col => {
-      isInFlowItem = inflowData.find(item => item[0] == col[sku].toString().toUpperCase()) // Inflow sku at back
+      isInFlowItem = inflowData.find(item => item[0].split(' - ').pop().toUpperCase() == col[sku].toString().toUpperCase()) // Inflow sku at back
       col[tritesQty] = (isInFlowItem) ? isInFlowItem[1] : ''; // Add Trites inventory values if they are found in inFlow
 
       return [col[0], col[1], col[2], col[3], col[4], col[5], col[sku], col[6], col[7]]
