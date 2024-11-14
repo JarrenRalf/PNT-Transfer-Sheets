@@ -4845,11 +4845,11 @@ function search(e, spreadsheet, sheet)
 
     if (values.length !== 0) // Don't run function if every value is blank, probably means the user pressed the delete key on a large selection
     {
-      const inventorySheet = spreadsheet.getSheetByName("INVENTORY");
       var data, someSKUsNotFound = false, skus;
 
       if (isRichmondSpreadsheet(spreadsheet))
       {
+        var inventorySheet = spreadsheet.getSheetByName("INVENTORY");
         data = inventorySheet.getSheetValues(8, 1, inventorySheet.getLastRow() - 7, 8);
 
         if (values[0][0].toString().includes(' - ')) // Strip the sku from the first part of the google description
@@ -4859,7 +4859,7 @@ function search(e, spreadsheet, sheet)
             for (var i = 0; i < data.length; i++)
             {
               if (data[i][7] == item[0].toString().split(' - ').pop().toUpperCase())
-                return [data[i][0], data[i][1], '', data[i][3], data[i][4], data[i][5], data[i][6]]
+                return [data[i][0], data[i][1], data[i][2], data[i][3], data[i][4], data[i][5], data[i][6]]
             }
 
             someSKUsNotFound = true;
@@ -4874,7 +4874,7 @@ function search(e, spreadsheet, sheet)
             for (var i = 0; i < data.length; i++)
             {
               if (data[i][7] == item.toString().toUpperCase())
-                return [data[i][0], data[i][1], '', data[i][3], data[i][4], data[i][5], data[i][6]]
+                return [data[i][0], data[i][1], data[i][2], data[i][3], data[i][4], data[i][5], data[i][6]]
             }
 
             someSKUsNotFound = true;
@@ -4889,7 +4889,7 @@ function search(e, spreadsheet, sheet)
             for (var i = 0; i < data.length; i++)
             {
               if (data[i][7] == item[0].toString().toUpperCase())
-                return [data[i][0], data[i][1], '', data[i][3], data[i][4], data[i][5], data[i][6]]
+                return [data[i][0], data[i][1], data[i][2], data[i][3], data[i][4], data[i][5], data[i][6]]
             }
 
             someSKUsNotFound = true;
@@ -4947,8 +4947,9 @@ function search(e, spreadsheet, sheet)
       }
       else // Parksville or Rupert
       {
-        data = inventorySheet.getSheetValues(10, 1, inventorySheet.getLastRow() - 9, 7);
-        var columnIndex = (isParksvilleSpreadsheet(spreadsheet)) ? [3, 2, 4, 5] : [4, 2, 3, 5];
+        var inventorySheet = spreadsheet.getSheetByName("SearchData");
+        data = inventorySheet.getSheetValues(2, 1, inventorySheet.getLastRow() - 1, 7);
+        var columnIndex = (isParksvilleSpreadsheet(spreadsheet)) ? [4, 3, 5, 6] : [5, 3, 4, 6];
         
         if (values[0][0].toString().includes(' - ')) // Strip the sku from the first part of the google description
         {
@@ -4956,8 +4957,8 @@ function search(e, spreadsheet, sheet)
           
             for (var i = 0; i < data.length; i++)
             {
-              if (data[i][6] == item[0].toString().split(' - ').pop().toUpperCase())
-                return [data[i][0], data[i][1], '', ...columnIndex.map(col => data[i][col]), '']
+              if (data[i][1].toString().split(' - ').pop().toUpperCase() == item[0].toString().split(' - ').pop().toUpperCase())
+                return [data[i][0], data[i][1], data[i][2], ...columnIndex.map(col => data[i][col]), '']
             }
 
             someSKUsNotFound = true;
@@ -4971,8 +4972,8 @@ function search(e, spreadsheet, sheet)
           
             for (var i = 0; i < data.length; i++)
             {
-              if (data[i][6] == item.toString().toUpperCase())
-                return [data[i][0], data[i][1], '',  ...columnIndex.map(col => data[i][col]), '']
+              if (data[i][1].toString().split(' - ').pop().toUpperCase() == item.toString().toUpperCase())
+                return [data[i][0], data[i][1], data[i][2],  ...columnIndex.map(col => data[i][col]), '']
             }
 
             someSKUsNotFound = true;
@@ -4986,8 +4987,8 @@ function search(e, spreadsheet, sheet)
           
             for (var i = 0; i < data.length; i++)
             {
-              if (data[i][6] == item[0].toString().toUpperCase())
-                return [data[i][0], data[i][1], '', ...columnIndex.map(col => data[i][col]), '']
+              if (data[i][1].toString().split(' - ').pop().toUpperCase() == item[0].toString().toUpperCase())
+                return [data[i][0], data[i][1], data[i][2], ...columnIndex.map(col => data[i][col]), '']
             }
 
             someSKUsNotFound = true;
