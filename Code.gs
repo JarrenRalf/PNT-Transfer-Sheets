@@ -5193,13 +5193,12 @@ function sendEmailToTrites()
   { 
     const spreadsheet = SpreadsheetApp.getActive();
     const timeZone = spreadsheet.getSpreadsheetTimeZone();
-    const pntStoreLocation = (isParksvilleSpreadsheet(spreadsheet)) ? 'Parksville' : 'Prince Rupert'
-    const htmlOutput = HtmlService.createHtmlOutputFromFile('tritesStockCheckEmail')
     const emailTimestamp = "\n*Email Sent to Trites on " + Utilities.formatDate(new Date(), timeZone, "dd MMM yyyy")+"*";
     const emailTimestamp_TextStyle = SpreadsheetApp.newTextStyle().setBold(true).setFontFamily('Arial').setFontSize(10).setForegroundColor('#cc0000').setUnderline(true).build();
-    var range, notesRange, richText_Notes, richText_Notes_Runs, fullText, fullTextLength, backgroundColours = [];
+    var range, notesRange, richText_Notes, richText_Notes_Runs, fullText, fullTextLength, backgroundColours = [], row = []; // 
 
     const itemValues = [].concat.apply([], activeRanges.map(rng => {
+        row.push(rng.getRow()) // We will use this row number to hyperlink the user to this cell through the email url
         range = rng.offset(0, 1 - rng.getColumn(), rng.getNumRows(), 6);
         notesRange = rng.offset(0, 6 - rng.getColumn(), rng.getNumRows(), 1);
         backgroundColours.push(...range.getBackgrounds());
@@ -5260,6 +5259,12 @@ function sendEmailToTrites()
       })
     );
 
+    const pntStoreLocation = (isParksvilleSpreadsheet(spreadsheet)) ? 'Parksville' : 'Prince Rupert'
+    const gid = spreadsheet.getSheetByName('Order').getSheetId();
+    const htmlTemplate = HtmlService.createTemplateFromFile('tritesStockCheckEmail')
+    htmlTemplate.storeLocation = pntStoreLocation;
+    htmlTemplate.transferSheetUrl = spreadsheet.getUrl() + '?gid=' + gid + '#gid=' + gid + '&range=I' + row.shift();
+    const htmlOutput = htmlTemplate.evaluate();
     const numItems = itemValues.length;
     
     for (var i = 0; i < numItems; i++)
