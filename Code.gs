@@ -133,20 +133,18 @@ function addItemsToSearchData()
   const NUM_COLS = 6;
   const spreadsheet = SpreadsheetApp.getActive();
   const searchDataSheet = spreadsheet.getSheetByName("SearchData");
-  const sheet = spreadsheet.getActiveSheet(); // Assumed to be the inventory page (because that is where the button for this function lives)
   const startRow = searchDataSheet.getLastRow() + 1; // The bottom of the list
   var firstRows, row, lastRow, rows = [];
   [firstRows, numRows, row, lastRow] = copySelectedValues(searchDataSheet, startRow, NUM_COLS); // Move items to SearchData
   const totalNumRows = lastRow - row + 1;
+  const numActiveRanges = firstRows.length;
 
   // Determine which rows "No TS" needs to be removed from
-  for (var i = 0; i < firstRows.length; i++)
-  {
+  for (var i = 0; i < numActiveRanges; i++)
     for (var j = 0; j < numRows[i]; j++)
       rows.push(firstRows[i] - row + j);
-  }
 
-  var range = sheet.getRange(row, 9, totalNumRows);
+  var range = spreadsheet.getActiveSheet().getRange(row, 9, totalNumRows);
   var values = range.getValues();
   rows.map(row => values[row][0] = '');
   range.setValues(values);
@@ -284,11 +282,13 @@ function addToAllManualCountsPages()
                          SpreadsheetApp.openById('181NdJVJueFNLjWplRNsgNl0G-sEJVW3Oy4z9vzUFrfM'), // Parksville
                          SpreadsheetApp.getActive()] // Richmond
   const itemSearchSheet = spreadsheets[2].getSheetByName("Item Search")
-  var activeRanges = itemSearchSheet.getActiveRangeList().getRanges(); // The selected ranges on the item search sheet
+  const activeRanges = itemSearchSheet.getActiveRangeList().getRanges(); // The selected ranges on the item search sheet
+  const numActiveRanges = activeRanges.length;
   var itemValues = [[[]]], firstRows = [], lastRows = [], items, manualCountsSheet, finalRow, startRow, groupedItems;
+
   
   // Find the first row and last row in the the set of all active ranges
-  for (var r = 0; r < activeRanges.length; r++)
+  for (var r = 0; r < numActiveRanges; r++)
   {
     firstRows[r] = activeRanges[r].getRow();
      lastRows[r] = activeRanges[r].getLastRow()
@@ -301,7 +301,7 @@ function addToAllManualCountsPages()
 
   if (row > numHeaders && lastRow <= finalDataRow) // If the user has not selected an item, alert them with an error message
   { 
-    for (var r = 0; r < activeRanges.length; r++)
+    for (var r = 0; r < numActiveRanges; r++)
       itemValues[r] = itemSearchSheet.getSheetValues(firstRows[r], 2, lastRows[r] - firstRows[r] + 1, 5);
     
     var itemVals = [].concat.apply([], itemValues); // Concatenate all of the item values as a 2-D array
@@ -380,6 +380,7 @@ function addToInflowPickList(qty)
                                                                                                                     spreadsheet.getSheetByName("inFlowPick");
   const activeSheet = SpreadsheetApp.getActiveSheet();
   const activeRanges = activeSheet.getActiveRangeList().getRanges(); // The selected ranges on the item search sheet
+  const numActiveRanges = activeRanges.length;
   const firstRows = [], lastRows = [], itemValues = [];
 
   const inflowData = Utilities.parseCsv(DriveApp.getFilesByName("inFlow_StockLevels.csv").next().getBlob().getDataAsString())
@@ -388,7 +389,7 @@ function addToInflowPickList(qty)
   if (activeSheet.getSheetName() === "Item Search")
   {
     // Find the first row and last row in the the set of all active ranges
-    for (var r = 0; r < activeRanges.length; r++)
+    for (var r = 0; r < numActiveRanges; r++)
     {
        firstRows[r] = activeRanges[r].getRow();
         lastRows[r] = activeRanges[r].getLastRow();
@@ -415,7 +416,7 @@ function addToInflowPickList(qty)
   else if (activeSheet.getSheetName() === "Suggested inFlowPick")
   {
     // Find the first row and last row in the the set of all active ranges
-    for (var r = 0; r < activeRanges.length; r++)
+    for (var r = 0; r < numActiveRanges; r++)
     {
        firstRows[r] = activeRanges[r].getRow();
         lastRows[r] = activeRanges[r].getLastRow();
@@ -442,7 +443,7 @@ function addToInflowPickList(qty)
   else if (activeSheet.getSheetName() === "Order")
   {
     // Find the first row and last row in the the set of all active ranges
-    for (var r = 0; r < activeRanges.length; r++)
+    for (var r = 0; r < numActiveRanges; r++)
     {
        firstRows[r] = activeRanges[r].getRow();
       itemValues[r] = activeSheet.getSheetValues(firstRows[r], 3, activeRanges[r].getLastRow() - firstRows[r] + 1, 7);
@@ -492,10 +493,11 @@ function addToOppositeStoreShippedPage()
   const spreadsheet = SpreadsheetApp.getActive()
   const activeSheet = SpreadsheetApp.getActiveSheet();
   const activeRanges = activeSheet.getActiveRangeList().getRanges(); // The selected ranges on the item search sheet
+  const numActiveRanges = activeRanges.length;
   const firstRows = [], numRows = [], itemValues = [], backgroundColours = [], richTextValues = [];
 
   // Find the first row and last row in the the set of all active ranges
-  for (var r = 0; r < activeRanges.length; r++)
+  for (var r = 0; r < numActiveRanges; r++)
   {
     firstRows.push(activeRanges[r].getRow());
     numRows.push(activeRanges[r].getLastRow() - firstRows[r] + 1);
@@ -630,6 +632,7 @@ function applyFullSpreadsheetFormatting(spreadsheet, sheets)
   const Store_Name = spreadsheet.getName().split(" ")[1]; // Gets the store name from the name of the spreadsheet
   const STORE_NAME = Store_Name.toUpperCase();            // Makes the store name upper case
   const sheetNames = sheets.map(sheet => sheet.getSheetName());
+  const numSheets = sheets.length;
   const RED = '#ea9999', GREEN = '#b6d7a8', YELLOW = '#ffd666'; // The colours of the order date highlighting
   const today = new Date();
   const      YEAR = today.getFullYear();
@@ -641,7 +644,7 @@ function applyFullSpreadsheetFormatting(spreadsheet, sheets)
     numberFormats, backgroundColours, horizontalAlignments, wrapStrategies, notesRange, noteBackgroundColours, richTextValues, headerNumberFormats, headerValues, 
     headerBackgroundColours, headerFontColours, headerFontWeights, headerFontSizes, headerHorizontalAlignments, headerFonts, columnWidths;
 
-  for (var j = 0; j < sheets.length; j++)
+  for (var j = 0; j < numSheets; j++)
   {
     if(sheetNames[j] === "Order" || sheetNames[j] === "Shipped" || sheetNames[j] === "Received" )
     {
@@ -1683,14 +1686,15 @@ function copySelectedValues(sheet, startRow, numCols, qtyCol, isInfoCountsPage, 
   const isOrderPage        = qtyCol == 9;
   const isItemsToRichPage  = qtyCol == 6;
   const isManualCountsPage = qtyCol == 3 && !isInfoCountsPage;
-  
-  var  activeSheet = SpreadsheetApp.getActiveSheet();
-  var activeRanges = activeSheet.getActiveRangeList().getRanges(); // The selected ranges on the item search sheet
+  const  activeSheet = SpreadsheetApp.getActiveSheet();
+  const activeRanges = activeSheet.getActiveRangeList().getRanges(); // The selected ranges on the item search sheet
+  const numActiveRanges = activeRanges.length;
+
   var firstRows = [], lastRows = [], numRows = [];
   var itemValues = [[[]]];
   
   // Find the first row and last row in the the set of all active ranges
-  for (var r = 0; r < activeRanges.length; r++)
+  for (var r = 0; r < numActiveRanges; r++)
   {
     firstRows[r] = activeRanges[r].getRow();
      lastRows[r] = activeRanges[r].getLastRow()
@@ -1706,7 +1710,7 @@ function copySelectedValues(sheet, startRow, numCols, qtyCol, isInfoCountsPage, 
 
   if (row > numHeaders && lastRow <= finalDataRow) // If the user has not selected an item, alert them with an error message
   { 
-    for (var r = 0; r < activeRanges.length; r++)
+    for (var r = 0; r < numActiveRanges; r++)
     {
          numRows[r] = lastRows[r] - firstRows[r] + 1;
       itemValues[r] = activeSheet.getSheetValues(firstRows[r], col, numRows[r], numCols);
@@ -1944,9 +1948,10 @@ function countsRemaining()
   if (isRichmondSpreadsheet(spreadsheet)) 
   {
     const inventorySheet = spreadsheet.getSheetByName("INVENTORY")
-    const fullInventory = inventorySheet.getSheetValues(8, 2, inventorySheet.getLastRow() - 7, 7);
+    const numItems = inventorySheet.getLastRow() - 7;
+    const fullInventory = inventorySheet.getSheetValues(8, 2, numItems, 7);
 
-    for (var i = 0; i < fullInventory.length; i++)
+    for (var i = 0; i < numItems; i++)
     {
       if (fullInventory[i][1] === '' || fullInventory[i][1] < ONE_YEAR)
       {
@@ -1962,7 +1967,7 @@ function countsRemaining()
     const searchDataSheet = spreadsheet.getSheetByName("SearchData")
     const fullInventory = searchDataSheet.getSheetValues(2, 2, searchDataSheet.getLastRow() - 1, 2);
 
-    for (var i = 0; i < fullInventory.length; i++)
+    for (var i = 0; i < numItems; i++)
     {
       if (fullInventory[i][1] === '' || fullInventory[i][1] < ONE_YEAR)
       {
@@ -2074,7 +2079,8 @@ function downloadInflowBarcodes()
   const sheet = spreadsheet.getSheetByName("Moncton's inFlow Item Quantities");
   const upcDatabase = spreadsheet.getSheetByName("UPC Database");
   const upcs = upcDatabase.getSheetValues(2, 1, upcDatabase.getLastRow() - 1, 3)
-  const data = sheet.getSheetValues(3, 1, sheet.getLastRow() - 2, 1).map(item => {
+  const numRows = sheet.getLastRow() - 2;
+  const data = sheet.getSheetValues(3, 1, numRows, 1).map(item => {
     item.push('');
     upcs.map(upc => {
       if (upc[2] === item[0])
@@ -2083,7 +2089,7 @@ function downloadInflowBarcodes()
     return item;
   })
 
-  for (var row = 0, csv = "Name,Barcode\r\n"; row < data.length; row++)
+  for (var row = 0, csv = "Name,Barcode\r\n"; row < numRows; row++)
   {
     for (var col = 0; col < data[row].length; col++)
     {
@@ -2106,9 +2112,10 @@ function downloadInflowBarcodes()
 function downloadInflowPickList()
 {
   const sheet = SpreadsheetApp.getActive().getSheetByName("inFlowPick");
-  const data = sheet.getSheetValues(3, 1, sheet.getLastRow() - 2, sheet.getLastColumn() - 1)
+  const numRows = sheet.getLastRow() - 2;
+  const data = sheet.getSheetValues(3, 1, numRows, sheet.getLastColumn() - 1)
 
-  for (var row = 0, csv = "OrderNumber,Customer,ItemName,ItemQuantity\r\n"; row < data.length; row++)
+  for (var row = 0, csv = "OrderNumber,Customer,ItemName,ItemQuantity\r\n"; row < numRows; row++)
   {
     for (var col = 0; col < data[row].length; col++)
     {
@@ -2145,7 +2152,9 @@ function downloadInflowStockLevels()
 
   })
 
-  for (var row = 0, csv = "Item,Location,Quantity\r\n"; row < data.length; row++)
+  const numRows = data.length;
+
+  for (var row = 0, csv = "Item,Location,Quantity\r\n"; row < numRows; row++)
   {
     for (var col = 0; col < data[row].length; col++)
     {
@@ -2153,7 +2162,7 @@ function downloadInflowStockLevels()
         data[row][col] = "\"" + data[row][col] + "\"";
     }
 
-    csv += (row < data.length - 1) ? data[row].join(",") + "\r\n" : data[row];
+    csv += (row < numRows - 1) ? data[row].join(",") + "\r\n" : data[row];
   }
 
   return ContentService.createTextOutput(csv).setMimeType(ContentService.MimeType.CSV).downloadAsFile('inFlow_StockLevels.csv');
@@ -2189,26 +2198,26 @@ function generateSuggestedInflowPick()
   Utilities.parseCsv(DriveApp.getFilesByName("inFlow_StockLevels.csv").next().getBlob().getDataAsString()).map(item =>{
     if (item[0].split(' - ').length > 4) // If there are more than 4 "space-dash-space" strings within the inFlow description, then that item is recognized in Adagio 
     {
-      for (var i = 0; i < suggestedValues.length; i++)
+      for (var i = 0; i < numSuggestedItems; i++)
         if (suggestedValues[i][0] == item[0]) // The ith item of the suggested inFlowPick page was found in the inFlow csv, therefore break the for loop
           break;
 
-      if (i === suggestedValues.length)
+      if (i === numSuggestedItems)
         suggestedValues.push([item[0], '', '']) // If there is an item in inFlow but not on the suggested inFlowPick page, then add it
     }
   })
 
-  if (suggestedValues.length > numSuggestedItems) // Items from the inFlow csv have been added to the suggested inFlowPick page
+  if (numSuggestedItems > numSuggestedItems) // Items from the inFlow csv have been added to the suggested inFlowPick page
   {
     suggestedValues.sort((a, b) => a[0].localeCompare(b[0])); // Sort the items by the description
-    suggestedValuesSheet.getRange(2, 1, suggestedValues.length, 3).setValues(suggestedValues)
+    suggestedValuesSheet.getRange(2, 1, numSuggestedItems, 3).setValues(suggestedValues)
   }
   
   const output = inventorySheet.getSheetValues(8, 2, inventorySheet.getLastRow() - 7, 6).map(e => {
 
     if (isNotBlank(e[5]) && Number(e[2]) >= Number(e[5])) // Trites Inventory Column is not blank and the Adagio inventory is greater than or equal to inFlow inventory 
     {
-      for (var i = 0; i < suggestedValues.length; i++)
+      for (var i = 0; i < numSuggestedItems; i++)
       {
         if (suggestedValues[i][0] == e[0]) // Match the SKUs of the suggestValues list and the available inFlow inventory
         {
@@ -2374,8 +2383,9 @@ function getLastRowSpecial(range)
 {
   var rowNum = 0;
   var blank = false;
+  const numRows = range.length;
   
-  for (var row = 0; row < range.length; row++)
+  for (var row = 0; row < numRows; row++)
   {
     if(range[row][0] === "" && !blank)
     {
@@ -2424,9 +2434,10 @@ function getPhysicalCounted_CountLog(sheets, DATE, recentCounts)
   const  DATA_START_ROW = 4;
   const  BACK_ORDER_COL = 5;
   const currentStockCol = 2;
+  const numSheets = sheets.length;
   var sku, numRows, sheetName, descripCol, numCols, quantityColIndex, data, countedItems = [];
 
-  for (var s = 0; s < sheets.length; s++)
+  for (var s = 0; s < numSheets; s++)
   {
     numRows = sheets[s].getLastRow() - DATA_START_ROW + 1;
     sheetName = sheets[s].getSheetName();
@@ -2452,7 +2463,7 @@ function getPhysicalCounted_CountLog(sheets, DATE, recentCounts)
       quantityColIndex = (numCols === 3) ? 2 : 3;
       data = sheets[s].getSheetValues(DATA_START_ROW, descripCol, numRows, numCols);
 
-      for (var i = 0; i < data.length; i++)
+      for (var i = 0; i < numRows; i++)
       { 
         // Check if the entry is a number, then if Order or Shipped sheet, then check if actual and current stock are different, and don't include Back Orders if on the Order sheet
         if (!(isNaN(parseInt(data[i][quantityColIndex]))) && ((descripCol === 1) || ((data[i][quantityColIndex] != data[i][currentStockCol]) && (numCols != 6 || data[i][BACK_ORDER_COL] != "B/O"))))
@@ -2528,11 +2539,12 @@ function insertCarrierNotAssignedBanner()
   const sheet = SpreadsheetApp.getActive().getSheetByName("Shipped");
   const values = sheet.getDataRange().getValues();
   const LAST_COL = sheet.getLastColumn();
+  const numRows = sheet.getLastRow() - 1;
   const bannerRow = [];
 
   conditional: if (true)
   {
-    for (var i = sheet.getLastRow() - 1; i >= 4; i--)
+    for (var i = numRows; i >= 4; i--)
     {
       if (values[i][BANNER_COL] === 'Carrier Not Assigned') // Carrier Not Assigned banner was found!
       {
@@ -2595,11 +2607,12 @@ function itemScan(e, spreadsheet, sheet, sheetName)
         .setVerticalAlignment("middle").setHorizontalAlignment("center").setFontColor("black").setFontSize(35)
         .setBorder(true, true, true, true, false, false, 'black', SpreadsheetApp.BorderStyle.SOLID)
         .getValue();
+      const numUpcs = upcDatabase.length - 1;
       
       const lastRow = sheet.getLastRow();
       const row = lastRow + 1; 
 
-      loop: for (var i = upcDatabase.length - 1; i >= 1; i--)
+      loop: for (var i = numUpcs; i >= 1; i--)
       {
         if (upcDatabase[i][0] == upcCode)
         {
@@ -3005,7 +3018,9 @@ function manualScan(e, spreadsheet, sheet)
           {
             if (lastRow <= 3) // There are no items on the manual counts page
             {
-              for (var i = upcDatabase.length - 1; i >= 1; i--) // Loop through the UPC values
+              const numUpcs = upcDatabase.length - 1;
+
+              for (var i = numUpcs; i >= 1; i--) // Loop through the UPC values
               {
                 if (upcDatabase[i][0] == upcCode) // UPC found
                 {
@@ -3022,13 +3037,15 @@ function manualScan(e, spreadsheet, sheet)
             else // There are existing items on the manual counts page
             {
               const row = lastRow + 1;
-              const manualCountsValues = manualCountsPage.getSheetValues(4, 1, row - 3, 5);
+              const numRows = row - 3;
+              const manualCountsValues = manualCountsPage.getSheetValues(4, 1, numRows, 5);
+              const numUpcs = upcDatabase.length - 1;
 
-              for (var i = upcDatabase.length - 1; i >= 1; i--) // Loop through the UPC values
+              for (var i = numUpcs; i >= 1; i--) // Loop through the UPC values
               {
                 if (upcDatabase[i][0] == upcCode)
                 {
-                  for (var j = 0; j < manualCountsValues.length; j++) // Loop through the manual counts page
+                  for (var j = 0; j < numRows; j++) // Loop through the manual counts page
                   {
                     if (manualCountsValues[j][0] === upcDatabase[i][2]) // The description matches
                     {
@@ -3104,10 +3121,11 @@ function manualScan(e, spreadsheet, sheet)
           {
             const lastRow = manualCountsPage.getLastRow();
             const upcDatabase = spreadsheet.getSheetByName("UPC Database").getDataRange().getValues();
+            const numUpcs = upcDatabase.length - 1;
 
             if (lastRow <= 3) // There are no items on the manual counts page
             {
-              for (var i = upcDatabase.length - 1; i >= 1; i--) // Loop through the UPC values
+              for (var i = numUpcs; i >= 1; i--) // Loop through the UPC values
               {
                 if (upcDatabase[i][0] == upcCode) // UPC found
                 {
@@ -3119,13 +3137,14 @@ function manualScan(e, spreadsheet, sheet)
             else // There are existing items on the manual counts page
             {
               const row = lastRow + 1;
-              const manualCountsValues = manualCountsPage.getSheetValues(4, 1, row - 3, 5);
+              const numRows = row - 3;
+              const manualCountsValues = manualCountsPage.getSheetValues(4, 1, numRows, 5);
 
-              for (var i = upcDatabase.length - 1; i >= 1; i--) // Loop through the UPC values
+              for (var i = numUpcs; i >= 1; i--) // Loop through the UPC values
               {
                 if (upcDatabase[i][0] == upcCode)
                 {
-                  for (var j = 0; j < manualCountsValues.length; j++) // Loop through the manual counts page
+                  for (var j = 0; j < numRows; j++) // Loop through the manual counts page
                   {
                     if (manualCountsValues[j][0] === upcDatabase[i][2]) // The description matches
                     {
@@ -3421,9 +3440,10 @@ function manualScan(e, spreadsheet, sheet)
               .offset(-1, 1, 1, 1).setValue('1 result found');
           else // There are existing items on the manual counts page
           {
+            const numRows = lastRow - 3;
             const manualCountsValues = manualCountsPage.getSheetValues(4, 1, lastRow - 3, 5);
 
-            for (var j = 0; j < manualCountsValues.length; j++) // Loop through the manual counts page
+            for (var j = 0; j < numRows; j++) // Loop through the manual counts page
             {
               if (manualCountsValues[j][0] === item[0]) // The description matches
               {
@@ -3440,7 +3460,7 @@ function manualScan(e, spreadsheet, sheet)
               }
             }
 
-            if (j === manualCountsValues.length) // Item was not found on the manual counts page
+            if (j === numRows) // Item was not found on the manual counts page
               barcodeInputRange.setDataValidation(SpreadsheetApp.newDataValidation().requireValueInList([]).build())
                 .offset( 1, 0, 1, 2).setValues([[item[0] + '\nwill be added to the Manual Counts page at line :\n' + (lastRow + 1) + '\nCurrent Stock :\n' + item[1], '']])
                 .offset(-1, 1, 1, 1).setValue('1 result found');
@@ -3469,23 +3489,17 @@ function manualScan(e, spreadsheet, sheet)
             if (isRichmondSpreadsheet(spreadsheet)) 
             {
               var currentStock = 2; // Changes the index number for selecting the current stock from inventory data
-              var transferData = inventorySheet.getSheetValues(8, 2, inventorySheet.getLastRow() - 7, 3)
+              var numItems = inventorySheet.getLastRow() - 7;
+              var transferData = inventorySheet.getSheetValues(8, 2, numItems, currentStock + 1)
             }
             else
             {
-              if (isParksvilleSpreadsheet(spreadsheet))
-              {
-                var currentStock = 2 ; // Changes the index number for selecting the current stock from inventory data
-                var transferData = inventorySheet.getSheetValues(10, 2, inventorySheet.getLastRow() - 9, 3);
-              }
-              else
-              {
-                var currentStock = 3; // Changes the index number for selecting the current stock from inventory data
-                var transferData = inventorySheet.getSheetValues(10, 2, inventorySheet.getLastRow() - 9, 4)   // Rupert
-              }
+              var currentStock = (isParksvilleSpreadsheet(spreadsheet)) ? 2 : 3; // Changes the index number for selecting the current stock from inventory data
+              var numItems = inventorySheet.getLastRow() - 9;
+              var transferData = inventorySheet.getSheetValues(10, 2, numItems, currentStock + 1)   // Rupert
             }
 
-            search: for (var i = 0; i < transferData.length; i++)
+            search: for (var i = 0; i < numItems; i++)
             {
               for (var j = 0; j <= numSearchWords; j++) // Loop through each word in the User's query
               {
@@ -3517,9 +3531,10 @@ function manualScan(e, spreadsheet, sheet)
                   .offset(-1, 1, 1, 1).setValue('1 result found');
               else // There are existing items on the manual counts page
               {
+                const numRows = lastRow - 3;
                 const manualCountsValues = manualCountsPage.getSheetValues(4, 1, lastRow - 3, 5);
 
-                for (var j = 0; j < manualCountsValues.length; j++) // Loop through the manual counts page
+                for (var j = 0; j < numRows; j++) // Loop through the manual counts page
                 {
                   if (manualCountsValues[j][0] === item[0]) // The description matches
                   {
@@ -3536,7 +3551,7 @@ function manualScan(e, spreadsheet, sheet)
                   }
                 }
 
-                if (j === manualCountsValues.length) // Item was not found on the manual counts page
+                if (j === numRows) // Item was not found on the manual counts page
                   barcodeInputRange.setDataValidation(SpreadsheetApp.newDataValidation().requireValueInList([]).build())
                     .offset(1, 0, 1, 2).setValues([[item[0] + '\nwill be added to the Manual Counts page at line :\n' + (lastRow + 1) + '\nCurrent Stock :\n' + item[1], '']])
                     .offset(-1, 1, 1, 1).setValue('1 result found');
@@ -3554,10 +3569,11 @@ function manualScan(e, spreadsheet, sheet)
             {
                 const lastRow = manualCountsPage.getLastRow();
                 const upcDatabase = spreadsheet.getSheetByName("UPC Database").getDataRange().getValues();
+                const numUpcs = upcDatabase.length - 1;
 
                 if (lastRow <= 3) // There are no items on the manual counts page
                 {
-                  for (var i = upcDatabase.length - 1; i >= 1; i--) // Loop through the UPC values
+                  for (var i = numUpcs; i >= 1; i--) // Loop through the UPC values
                   {
                     if (upcDatabase[i][0] == searchWords[0]) // UPC found
                     {
@@ -3569,13 +3585,14 @@ function manualScan(e, spreadsheet, sheet)
                 else // There are existing items on the manual counts page
                 {
                   const row = lastRow + 1;
-                  const manualCountsValues = manualCountsPage.getSheetValues(4, 1, row - 3, 5);
+                  const numRows = row - 3
+                  const manualCountsValues = manualCountsPage.getSheetValues(4, 1, numRows, 5);
 
-                  for (var i = upcDatabase.length - 1; i >= 1; i--) // Loop through the UPC values
+                  for (var i = numUpcs; i >= 1; i--) // Loop through the UPC values
                   {
                     if (upcDatabase[i][0] == searchWords[0])
                     {
-                      for (var j = 0; j < manualCountsValues.length; j++) // Loop through the manual counts page
+                      for (var j = 0; j < numRows; j++) // Loop through the manual counts page
                       {
                         if (manualCountsValues[j][0] === upcDatabase[i][2]) // The description matches
                         {
@@ -3689,12 +3706,12 @@ function moveRow(e, spreadsheet, sheet, sheetName)
                 else
                 {
                   const dataValidation = spreadsheet.getSheetByName("Data Validation").getRange('B:C').getValues(); // These are all the data validation choices of carriers, etc.
+                  const numDataValidations = dataValidation.length
                   
-                  for (var i = 0; i < dataValidation.length; i++)
-                  {
+                  for (var i = 0; i < numDataValidations; i++)
                     if (value == dataValidation[i][0]) // The value selected matches th i-th data validation
                       transferRow(sheet, shippedSheet, row, rowValues, numCols, true, dataValidation[i][1], dataValidation[i][0]);
-                  }
+
                 }
               }
               else // Partial shipment, there some portion of the item will be on back order
@@ -3708,8 +3725,9 @@ function moveRow(e, spreadsheet, sheet, sheetName)
                 else
                 {
                   const dataValidation = spreadsheet.getSheetByName("Data Validation").getRange('B:C').getValues(); // These are all the data validation choices of carriers, etc.
+                  const numDataValidations = dataValidation.length
                   
-                  for (var i = 0; i < dataValidation.length; i++)
+                  for (var i = 0; i < numDataValidations; i++)
                   {
                     if (value == dataValidation[i][0]) // The value selected matches th i-th data validation
                     {
@@ -3753,8 +3771,9 @@ function moveRow(e, spreadsheet, sheet, sheetName)
                     else
                     {
                       const dataValidation = spreadsheet.getSheetByName("Data Validation").getRange('B:C').getValues(); // These are all the data validation choices of carriers, etc.
+                      const numDataValidations = dataValidation.length
                       
-                      for (var i = 0; i < dataValidation.length; i++)
+                      for (var i = 0; i < numDataValidations; i++)
                       {
                         if (value == dataValidation[i][0]) // The value selected matches th i-th data validation
                         {
@@ -3776,8 +3795,9 @@ function moveRow(e, spreadsheet, sheet, sheetName)
                     else
                     {
                       const dataValidation = spreadsheet.getSheetByName("Data Validation").getRange('B:C').getValues(); // These are all the data validation choices of carriers, etc.
+                      const numDataValidations = dataValidation.length
                       
-                      for (var i = 0; i < dataValidation.length; i++)
+                      for (var i = 0; i < numDataValidations; i++)
                       {
                         if (value == dataValidation[i][0]) // The value selected matches th i-th data validation
                         {
@@ -3852,12 +3872,11 @@ function moveRow(e, spreadsheet, sheet, sheetName)
         else // A specific Carrier choice
         {
           const dataValidation = dataValidationSheet.getSheetValues(1, 3, lastRow, 2);
+          const numDataValidations = dataValidation.length
 
-          for (var i = 0; i < dataValidation.length; i++)
-          {
+          for (var i = 0; i < numDataValidations; i++)
             if (value == dataValidation[i][1]) // Find the carrier and place the the line at the correct row number
               transferRow(sheet, sheet, row, rowValues, numCols, true, dataValidation[i][0], dataValidation[i][1], dataValidation, e);
-          }
         }
       }
       else if (sheetName == "Received" && value == "Back to Shipped") // An edit is occuring on the Received sheet 
@@ -4149,10 +4168,8 @@ function print_X(sheetName)
   var actualCounts = actualCountsRange.getValues();
   
   for (var i = 0; i < numRows; i++)
-  {
     if (!(isNaN(parseInt(actualCounts[i])))) // If the entry is a number then replace enty with an 'x'
       actualCounts[i][0] = 'x';
-  }
   
   actualCountsRange.setValues(actualCounts); // Replace the values with the new array that contains the x's
 
@@ -4224,7 +4241,8 @@ function receiveAll(e, spreadsheet, sheet)
     if (col == 13 && userHasNotPressedDelete(value) && value === 'Receive ALL') // Status Column edited, excluding pressing the delete key
     {
       var numRows = 0;
-      const shipments = sheet.getSheetValues(row, col - 2, sheet.getLastRow() - row + 1, 2);
+      const numPossibleShipments = sheet.getLastRow() - row + 1;
+      const shipments = sheet.getSheetValues(row, col - 2, numPossibleShipments, 2);
       sheet.hideColumns(12, 2);
 
       if (shipments[0][0] !== 'via')
@@ -4253,7 +4271,7 @@ function receiveAll(e, spreadsheet, sheet)
       {
         range.setValue('');
 
-        for (var i = 1; i < shipments.length; i++)
+        for (var i = 1; i < numPossibleShipments; i++)
         {
           if (shipments[i][0] !== 'via' && shipments[i][1] === '')
             numRows++;
@@ -4280,7 +4298,7 @@ function receiveAll(e, spreadsheet, sheet)
       {
         range.setValue('');
 
-        for (var i = 1; i < shipments.length; i++)
+        for (var i = 1; i < numPossibleShipments; i++)
         {
           if (shipments[i][0] !== 'via' && shipments[i][1] === '')
             numRows++;
@@ -4337,14 +4355,16 @@ function recentlyCreatedItems(spreadsheet, itemSearchSheet)
   {
     const orderSheet = spreadsheet.getSheetByName("Order");
     const shippedSheet = spreadsheet.getSheetByName("Shipped")
-    const orderedItems =   orderSheet.getSheetValues(4, 5,   orderSheet.getLastRow() - 3, 1); // The items on the order sheet
-    const shippedItems = shippedSheet.getSheetValues(4, 5, shippedSheet.getLastRow() - 3, 1); // The items on the shipped sheet
+    const numOrderedItems = orderSheet.getLastRow() - 3;
+    const numShippedItems = shippedSheet.getLastRow() - 3;
+    const orderedItems =   orderSheet.getSheetValues(4, 5, numOrderedItems, 1); // The items on the order sheet
+    const shippedItems = shippedSheet.getSheetValues(4, 5, numShippedItems, 1); // The items on the shipped sheet
     const backgroundColours = [], fontColours = [];
     var isOnOrderPage, isOnShippedPage;
 
     for (var i = 0; i < MAX_NUM_ITEMS; i++)
     {
-      for (var o = 0; o < orderedItems.length; o++) // Check if the item is on the order page
+      for (var o = 0; o < numOrderedItems; o++) // Check if the item is on the order page
       {
         if (orderedItems[o][0] === recentData[i][1])
         {
@@ -4353,7 +4373,7 @@ function recentlyCreatedItems(spreadsheet, itemSearchSheet)
         }
         isOnOrderPage = false;
       }
-      for (var s = 0; s < shippedItems.length; s++) // Check if the item is on the shipped page
+      for (var s = 0; s < numShippedItems; s++) // Check if the item is on the shipped page
       {
         if (shippedItems[s][0] === recentData[i][1])
         {
@@ -4431,7 +4451,8 @@ function search(e, spreadsheet, sheet)
           if (isNotBlank(searchWords[0])) // If the value in the search box is NOT blank, then compute the search
           {
             const inventorySheet = spreadsheet.getSheetByName("INVENTORY");
-            const data = inventorySheet.getSheetValues(8, 1, inventorySheet.getLastRow() - 7, 7);
+            const numRows = inventorySheet.getLastRow() - 7;
+            const data = inventorySheet.getSheetValues(8, 1, numRows, 7);
             const numSearchWords = searchWords.length - 1; // The number of search words - 1
             const output = [];
 
@@ -4442,8 +4463,9 @@ function search(e, spreadsheet, sheet)
               else
               {
                 const tritesData = data.filter(item => item[6] > 0);
+                const numTritesData = tritesData.length;
 
-                for (var i = 0; i < tritesData.length; i++) // Loop through all of the descriptions from the search data
+                for (var i = 0; i < numTritesData; i++) // Loop through all of the descriptions from the search data
                 {
                   for (var j = 0; j <= numSearchWords; j++) // Loop through each word in the User's query
                   {
@@ -4463,7 +4485,7 @@ function search(e, spreadsheet, sheet)
             }
             else
             {
-              for (var i = 0; i < data.length; i++) // Loop through all of the descriptions from the search data
+              for (var i = 0; i < numRows; i++) // Loop through all of the descriptions from the search data
               {
                 for (var j = 0; j <= numSearchWords; j++) // Loop through each word in the User's query
                 {
@@ -4534,7 +4556,8 @@ function search(e, spreadsheet, sheet)
           if (isNotBlank(searchWords[0])) // If the value in the search box is NOT blank, then compute the search
           {
             const searchDataSheet = spreadsheet.getSheetByName("SearchData");
-            const descriptions = searchDataSheet.getSheetValues(2, 2, searchDataSheet.getLastRow() - 1, 1); // All the descriptions (ONLY) from the SearchData sheet
+            const numDescriptions = searchDataSheet.getLastRow() - 1;
+            const descriptions = searchDataSheet.getSheetValues(2, 2, numDescriptions, 1); // All the descriptions (ONLY) from the SearchData sheet
             const numSearchWords = searchWords.length - 1; // The number of search words - 1
             const firstOutput = [], itemIndices = [];
 
@@ -4544,7 +4567,7 @@ function search(e, spreadsheet, sheet)
 
               if (numSearchWords === 0)
               {
-                searchDataSheet.getSheetValues(2, 2, searchDataSheet.getLastRow() - 1, 6).filter((item, index) => {
+                searchDataSheet.getSheetValues(2, 2, numDescriptions, 6).filter((item, index) => {
                   isTrites = item[5] > 0;
 
                   if (isTrites)
@@ -4558,9 +4581,10 @@ function search(e, spreadsheet, sheet)
               }
               else
               {
-                const tritesData = searchDataSheet.getSheetValues(2, 2, searchDataSheet.getLastRow() - 1, 6);
+                const tritesData = searchDataSheet.getSheetValues(2, 2, numDescriptions, 6);
+                const numTritesData = tritesData.length;
 
-                for (var i = 0; i < tritesData.length; i++) // Loop through all of the descriptions from the search data
+                for (var i = 0; i < numTritesData; i++) // Loop through all of the descriptions from the search data
                 {
                   for (var j = 0; j <= numSearchWords; j++) // Loop through each word in the User's query
                   {
@@ -4583,7 +4607,7 @@ function search(e, spreadsheet, sheet)
             }
             else
             {
-              for (var i = 0; i < descriptions.length; i++) // Loop through all of the descriptions from the search data
+              for (var i = 0; i < numDescriptions; i++) // Loop through all of the descriptions from the search data
               {
                 for (var j = 0; j <= numSearchWords; j++) // Loop through each word in the User's query
                 {
@@ -4639,15 +4663,18 @@ function search(e, spreadsheet, sheet)
               const columnIndex = (isParksvilleSpreadsheet(spreadsheet)) ? [4, 3, 5, 6] : [5, 3, 4, 6]; // This makes sure the current stock reference on the Order sheet is correct
               const orderSheet = spreadsheet.getSheetByName("Order");
               const shippedSheet = spreadsheet.getSheetByName("Shipped");
-              const orderedItems =   orderSheet.getSheetValues(4, 5,   orderSheet.getLastRow() - 3, 1).map(u => u[0].split(' - ').pop()); // The items on the order sheet
-              const shippedItems = shippedSheet.getSheetValues(4, 5, shippedSheet.getLastRow() - 3, 1).map(u => u[0].split(' - ').pop()); // The items on the shipped sheet
+              const numOrderedItems = orderSheet.getLastRow() - 3;
+              const numShippedItems = shippedSheet.getLastRow() - 3;
+              const orderedItems =   orderSheet.getSheetValues(4, 5, numOrderedItems, 1).map(u => u[0].split(' - ').pop()); // The items on the order sheet
+              const shippedItems = shippedSheet.getSheetValues(4, 5, numShippedItems, 1).map(u => u[0].split(' - ').pop()); // The items on the shipped sheet
               const data = searchDataSheet.getSheetValues(2, 1, searchDataSheet.getLastRow() - 1, 7);
+              const numItemIndices = itemIndices.length;
               const backgroundColours = [], fontColours = [], secondOutput = [];
               var isOnOrderPage, isOnShippedPage;
 
-              for (var i = 0; i < itemIndices.length; i++) // Loop through the indices of the found items
+              for (var i = 0; i < numItemIndices; i++) // Loop through the indices of the found items
               {
-                for (var o = 0; o < orderedItems.length; o++) // Check if the item is on the order page
+                for (var o = 0; o < numOrderedItems; o++) // Check if the item is on the order page
                 {
                   if (orderedItems[o] === data[itemIndices[i]][1].split(' - ').pop())
                   {
@@ -4656,7 +4683,7 @@ function search(e, spreadsheet, sheet)
                   }
                   isOnOrderPage = false;
                 }
-                for (var s = 0; s < shippedItems.length; s++) // Check if the item is on the shipped page
+                for (var s = 0; s < numShippedItems; s++) // Check if the item is on the shipped page
                 {
                   if (shippedItems[s] === data[itemIndices[i]][1].split(' - ').pop())
                   {
@@ -4701,14 +4728,16 @@ function search(e, spreadsheet, sheet)
           {
             const orderSheet = spreadsheet.getSheetByName("Order");
             const shippedSheet = spreadsheet.getSheetByName("Shipped");
-            const orderedItems =   orderSheet.getSheetValues(4, 5,   orderSheet.getLastRow() - 3, 1); // The items on the order sheet
-            const shippedItems = shippedSheet.getSheetValues(4, 5, shippedSheet.getLastRow() - 3, 1); // The items on the shipped sheet
+            const numOrderedItems = orderSheet.getLastRow() - 3;
+            const numShippedItems = shippedSheet.getLastRow() - 3;
+            const orderedItems =   orderSheet.getSheetValues(4, 5, numOrderedItems, 1); // The items on the order sheet
+            const shippedItems = shippedSheet.getSheetValues(4, 5, numShippedItems, 1); // The items on the shipped sheet
             const recentData = spreadsheet.getSheetByName("Recent").getSheetValues(2, 1, MAX_NUM_ITEMS, 7); // These are the most recently created items
             const backgroundColours = [], fontColours = [];
 
             for (var i = 0; i < MAX_NUM_ITEMS; i++)
             {
-              for (var o = 0; o < orderedItems.length; o++) // Check if the item is on the order page
+              for (var o = 0; o < numOrderedItems; o++) // Check if the item is on the order page
               {
                 if (orderedItems[o][0] === recentData[i][1])
                 {
@@ -4717,7 +4746,7 @@ function search(e, spreadsheet, sheet)
                 }
                 isOnOrderPage = false;
               }
-              for (var s = 0; s < shippedItems.length; s++) // Check if the item is on the shipped page
+              for (var s = 0; s < numShippedItems; s++) // Check if the item is on the shipped page
               {
                 if (shippedItems[s][0] === recentData[i][1])
                 {
@@ -4850,13 +4879,15 @@ function search(e, spreadsheet, sheet)
       if (isRichmondSpreadsheet(spreadsheet))
       {
         var inventorySheet = spreadsheet.getSheetByName("INVENTORY");
-        data = inventorySheet.getSheetValues(8, 1, inventorySheet.getLastRow() - 7, 8);
+        const numRows = inventorySheet.getLastRow() - 7;
+        
+        data = inventorySheet.getSheetValues(8, 1, numRows, 8);
 
         if (values[0][0].toString().includes(' - ')) // Strip the sku from the first part of the google description
         {
           skus = values.map(item => {
           
-            for (var i = 0; i < data.length; i++)
+            for (var i = 0; i < numRows; i++)
             {
               if (data[i][7] == item[0].toString().split(' - ').pop().toUpperCase())
                 return [data[i][0], data[i][1], data[i][2], data[i][3], data[i][4], data[i][5], data[i][6]]
@@ -4871,7 +4902,7 @@ function search(e, spreadsheet, sheet)
         {
           skus = values.map(sku => sku[0].substring(0,4) + sku[0].substring(5,9) + sku[0].substring(10)).map(item => {
           
-            for (var i = 0; i < data.length; i++)
+            for (var i = 0; i < numRows; i++)
             {
               if (data[i][7] == item.toString().toUpperCase())
                 return [data[i][0], data[i][1], data[i][2], data[i][3], data[i][4], data[i][5], data[i][6]]
@@ -4886,7 +4917,7 @@ function search(e, spreadsheet, sheet)
         {
           skus = values.map(item => {
           
-            for (var i = 0; i < data.length; i++)
+            for (var i = 0; i < numRows; i++)
             {
               if (data[i][7] == item[0].toString().toUpperCase())
                 return [data[i][0], data[i][1], data[i][2], data[i][3], data[i][4], data[i][5], data[i][6]]
@@ -4948,14 +4979,15 @@ function search(e, spreadsheet, sheet)
       else // Parksville or Rupert
       {
         var inventorySheet = spreadsheet.getSheetByName("SearchData");
-        data = inventorySheet.getSheetValues(2, 1, inventorySheet.getLastRow() - 1, 7);
+        const numRows = inventorySheet.getLastRow() - 1;
+        data = inventorySheet.getSheetValues(2, 1, numRows, 7);
         var columnIndex = (isParksvilleSpreadsheet(spreadsheet)) ? [4, 3, 5, 6] : [5, 3, 4, 6];
         
         if (values[0][0].toString().includes(' - ')) // Strip the sku from the first part of the google description
         {
           skus = values.map(item => {
           
-            for (var i = 0; i < data.length; i++)
+            for (var i = 0; i < numRows; i++)
             {
               if (data[i][1].toString().split(' - ').pop().toUpperCase() == item[0].toString().split(' - ').pop().toUpperCase())
                 return [data[i][0], data[i][1], data[i][2], ...columnIndex.map(col => data[i][col]), '']
@@ -4970,7 +5002,7 @@ function search(e, spreadsheet, sheet)
         {
           skus = values.map(sku => sku[0].substring(0,4) + sku[0].substring(5,9) + sku[0].substring(10)).map(item => {
           
-            for (var i = 0; i < data.length; i++)
+            for (var i = 0; i < numRows; i++)
             {
               if (data[i][1].toString().split(' - ').pop().toUpperCase() == item.toString().toUpperCase())
                 return [data[i][0], data[i][1], data[i][2],  ...columnIndex.map(col => data[i][col]), '']
@@ -4985,7 +5017,7 @@ function search(e, spreadsheet, sheet)
         {
           skus = values.map(item => {
           
-            for (var i = 0; i < data.length; i++)
+            for (var i = 0; i < numRows; i++)
             {
               if (data[i][1].toString().split(' - ').pop().toUpperCase() == item[0].toString().toUpperCase())
                 return [data[i][0], data[i][1], data[i][2], ...columnIndex.map(col => data[i][col]), '']
@@ -5011,16 +5043,19 @@ function search(e, spreadsheet, sheet)
             return isSkuFound;
           })
 
+          const numSkusFound = skusFound.length;
           const orderSheet = spreadsheet.getSheetByName("Order");
           const shippedSheet = spreadsheet.getSheetByName("Shipped");
-          const orderedItems =   orderSheet.getSheetValues(4, 5,   orderSheet.getLastRow() - 3, 1).map(u => u[0].split(' - ').pop().toString().toUpperCase()); // The items on the order sheet
-          const shippedItems = shippedSheet.getSheetValues(4, 5, shippedSheet.getLastRow() - 3, 1).map(u => u[0].split(' - ').pop().toString().toUpperCase()); // The items on the shipped sheet
+          const numOrderedItems = orderSheet.getLastRow() - 3;
+          const numShippedItems = shippedSheet.getLastRow() - 3;
+          const orderedItems =   orderSheet.getSheetValues(4, 5, numOrderedItems, 1).map(u => u[0].split(' - ').pop().toString().toUpperCase()); // The items on the order sheet
+          const shippedItems = shippedSheet.getSheetValues(4, 5, numShippedItems, 1).map(u => u[0].split(' - ').pop().toString().toUpperCase()); // The items on the shipped sheet
           const backgroundColours = [], fontColours = [];
           var isOnOrderPage, isOnShippedPage;
 
-          for (var i = 0; i < skusFound.length; i++) // Loop through the skus that were pasted
+          for (var i = 0; i < numSkusFound; i++) // Loop through the skus that were pasted
           {
-            for (var o = 0; o < orderedItems.length; o++) // Check if the item is on the order page
+            for (var o = 0; o < numOrderedItems; o++) // Check if the item is on the order page
             {
               if (orderedItems[o] === skusFound[i][1].split(' - ').pop().toString().toUpperCase())
               {
@@ -5029,7 +5064,7 @@ function search(e, spreadsheet, sheet)
               }
               isOnOrderPage = false;
             }
-            for (var s = 0; s < shippedItems.length; s++) // Check if the item is on the shipped page
+            for (var s = 0; s < numShippedItems; s++) // Check if the item is on the shipped page
             {
               if (shippedItems[s] === skusFound[i][1].split(' - ').pop().toString().toUpperCase())
               {
@@ -5058,7 +5093,6 @@ function search(e, spreadsheet, sheet)
             }
           }
 
-          const numSkusFound = skusFound.length;
           const numSkusNotFound = skusNotFound.length;
           const items = [].concat.apply([], [skusNotFound, skusFound]); // Concatenate all of the item values as a 2-D array
           const numItems = items.length
@@ -5084,14 +5118,16 @@ function search(e, spreadsheet, sheet)
           const fontSizes = new Array(numItems).fill([10, 10, 10, 10, 10, 10, 10, 12])
           const orderSheet = spreadsheet.getSheetByName("Order");
           const shippedSheet = spreadsheet.getSheetByName("Shipped");
-          const orderedItems =   orderSheet.getSheetValues(4, 5,   orderSheet.getLastRow() - 3, 1).map(u => u[0].split(' - ').pop().toString().toUpperCase()); // The items on the order sheet
-          const shippedItems = shippedSheet.getSheetValues(4, 5, shippedSheet.getLastRow() - 3, 1).map(u => u[0].split(' - ').pop().toString().toUpperCase()); // The items on the shipped sheet
+          const numOrderedItems = orderSheet.getLastRow() - 3;
+          const numShippedItems = shippedSheet.getLastRow() - 3;
+          const orderedItems =   orderSheet.getSheetValues(4, 5, numOrderedItems, 1).map(u => u[0].split(' - ').pop().toString().toUpperCase()); // The items on the order sheet
+          const shippedItems = shippedSheet.getSheetValues(4, 5, numShippedItems, 1).map(u => u[0].split(' - ').pop().toString().toUpperCase()); // The items on the shipped sheet
           const backgroundColours = [], fontColours = [];
           var isOnOrderPage, isOnShippedPage;
 
-          for (var i = 0; i < skus.length; i++) // Loop through the skus that were pasted
+          for (var i = 0; i < numItems; i++) // Loop through the skus that were pasted
           {
-            for (var o = 0; o < orderedItems.length; o++) // Check if the item is on the order page
+            for (var o = 0; o < numShippedItems; o++) // Check if the item is on the order page
             {
               if (orderedItems[o] === skus[i][1].split(' - ').pop().toString().toUpperCase())
               {
@@ -5100,7 +5136,7 @@ function search(e, spreadsheet, sheet)
               }
               isOnOrderPage = false;
             }
-            for (var s = 0; s < shippedItems.length; s++) // Check if the item is on the shipped page
+            for (var s = 0; s < numShippedItems; s++) // Check if the item is on the shipped page
             {
               if (shippedItems[s] === skus[i][1].split(' - ').pop().toString().toUpperCase())
               {
@@ -5195,7 +5231,7 @@ function sendEmailToTrites()
     const timeZone = spreadsheet.getSpreadsheetTimeZone();
     const emailTimestamp = "\n*Email Sent to Trites on " + Utilities.formatDate(new Date(), timeZone, "dd MMM yyyy")+"*";
     const emailTimestamp_TextStyle = SpreadsheetApp.newTextStyle().setBold(true).setFontFamily('Arial').setFontSize(10).setForegroundColor('#cc0000').setUnderline(true).build();
-    var range, notesRange, richText_Notes, richText_Notes_Runs, fullText, fullTextLength, backgroundColours = [], row = []; // 
+    var range, notesRange, richText_Notes, richText_Notes_Runs, fullText, fullTextLength, numRuns, backgroundColours = [], row = []; // 
 
     const itemValues = [].concat.apply([], activeRanges.map(rng => {
         row.push(rng.getRow()) // We will use this row number to hyperlink the user to this cell through the email url
@@ -5207,9 +5243,10 @@ function sendEmailToTrites()
           fullText = note_RichText[0].getText()
           fullTextLength = fullText.length;
           richText_Notes_Runs = note_RichText[0].getRuns().map(run => [run.getStartIndex(), run.getEndIndex(), run.getTextStyle()]);
+          numRuns = richText_Notes_Runs.length;
 
           if (isNotBlank(fullText))
-            for (var i = 0, richTextBuilder = SpreadsheetApp.newRichTextValue().setText(fullText + emailTimestamp); i < 5; i++)
+            for (var i = 0, richTextBuilder = SpreadsheetApp.newRichTextValue().setText(fullText + emailTimestamp); i < numRuns; i++)
               richTextBuilder.setTextStyle(richText_Notes_Runs[i][0], richText_Notes_Runs[i][1], richText_Notes_Runs[i][2])
           else 
             return [SpreadsheetApp.newRichTextValue().setText("*Email Sent to Trites on " + Utilities.formatDate(new Date(), timeZone, "dd MMM yyyy")+"*").setTextStyle(emailTimestamp_TextStyle).build()]
@@ -5602,6 +5639,7 @@ function updateRecentlyCreatedItems()
   const countLog = spreadsheet.getSheetByName("Count Log")
   const countLogData = countLog.getSheetValues(2, 1, countLog.getLastRow(), countLog.getLastColumn());
   const mostRecentCounts = uniqByKeepLast(countLogData, sku => sku[0]);
+  const numRecentCounts = mostRecentCounts.length;
   var d; // This variable is used in the following filter function and it represents the value in the Created Date column
   
   if (isRichmondSpreadsheet(spreadsheet))
@@ -5617,7 +5655,7 @@ function updateRecentlyCreatedItems()
     // Place the dates of the most recently counted items on the recently created items list
     for (var i = 0; i < MAX_NUM_ITEMS; i++)
     {
-      for (var j = 0; j < mostRecentCounts.length; j++)
+      for (var j = 0; j < numRecentCounts; j++)
       {
         if (recentlyCreatedItems[i][7] == mostRecentCounts[j][0])
           recentlyCreatedItems[i][2] = mostRecentCounts[j][3];
@@ -5641,7 +5679,7 @@ function updateRecentlyCreatedItems()
     // Place the dates of the most recently counted items on the recently created items list
     for (var i = 0; i < MAX_NUM_ITEMS; i++)
     {
-      for (var j = 0; j < mostRecentCounts.length; j++)
+      for (var j = 0; j < numRecentCounts; j++)
       {
         if (recentlyCreatedItems[i][6] == mostRecentCounts[j][0])
           recentlyCreatedItems[i][8] = mostRecentCounts[j][3];
