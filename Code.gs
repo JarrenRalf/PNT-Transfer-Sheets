@@ -329,20 +329,22 @@ function addToAllManualCountsPages()
       if (startRow > 4) // There are existing items on the Manual Counts page
       {
         // Retrieve the existing items and add them to the new items
-        groupedItems = groupHoochieTypes(manualCountsSheet.getSheetValues(4, 1, startRow - 4, manualCountsSheet.getMaxColumns()).concat(items.map(val => [...val, '', '', '', '', ''])), 0)
-        items.length = 0;
+        // groupedItems = groupHoochieTypes(manualCountsSheet.getSheetValues(4, 1, startRow - 4, manualCountsSheet.getMaxColumns()).concat(items.map(val => [...val, '', '', '', '', ''])), 0)
+        // items.length = 0;
 
-        Object.keys(groupedItems).forEach(key => items.push(...sortHoochies(groupedItems[key], 0, key)));
+        // Object.keys(groupedItems).forEach(key => items.push(...sortHoochies(groupedItems[key], 0, key)));
+
+        const items = manualCountsSheet.getSheetValues(4, 1, startRow - 4, manualCountsSheet.getMaxColumns()).concat(items.map(val => [...val, '', '', '', '', '']));
 
         manualCountsSheet.getRange(4, 1, items.length, items[0].length).setNumberFormat('@').setValues(items); // Move the item values to the destination sheet
         applyFullRowFormatting(manualCountsSheet, 4, items.length, 7); // Apply the proper formatting
       }
       else
       {
-        groupedItems = groupHoochieTypes(items, 0)
-        items.length = 0;
+        // groupedItems = groupHoochieTypes(items, 0)
+        // items.length = 0;
 
-        Object.keys(groupedItems).forEach(key => items.push(...sortHoochies(groupedItems[key], 0, key)));
+        // Object.keys(groupedItems).forEach(key => items.push(...sortHoochies(groupedItems[key], 0, key)));
 
         manualCountsSheet.getRange(startRow, 1, numItems, items[0].length).setNumberFormat('@').setValues(items); // Move the item values to the destination sheet
         applyFullRowFormatting(manualCountsSheet, startRow, numItems, 7); // Apply the proper formatting
@@ -1864,21 +1866,22 @@ function copySelectedValues(sheet, startRow, numCols, qtyCol, isInfoCountsPage, 
       if (startRow > 4) // There are existing items on the Manual Counts page
       {
         // Retrieve the existing items and add them to the new items
-        const groupedItems = groupHoochieTypes(sheet.getSheetValues(4, startCol, startRow - 4, sheet.getMaxColumns()).concat(itemVals.map(val => [...val, '', '', '', '', ''])), 0)
-        const items = [];
+        // const groupedItems = groupHoochieTypes(sheet.getSheetValues(4, startCol, startRow - 4, sheet.getMaxColumns()).concat(itemVals.map(val => [...val, '', '', '', '', ''])), 0)
+        // const items = [];
 
-        Object.keys(groupedItems).forEach(key => items.push(...sortHoochies(groupedItems[key], 0, key)));
+        // Object.keys(groupedItems).forEach(key => items.push(...sortHoochies(groupedItems[key], 0, key)));
 
+        const items = sheet.getSheetValues(4, startCol, startRow - 4, sheet.getMaxColumns()).concat(itemVals.map(val => [...val, '', '', '', '', '']))
         sheet.getRange(4, startCol, items.length, items[0].length).setNumberFormat('@').setValues(items); // Move the item values to the destination sheet
       }
       else
       {
-        const groupedItems = groupHoochieTypes(itemVals, 0)
-        const items = [];
+        // const groupedItems = groupHoochieTypes(itemVals, 0)
+        // const items = [];
 
-        Object.keys(groupedItems).forEach(key => items.push(...sortHoochies(groupedItems[key], 0, key)));
+        // Object.keys(groupedItems).forEach(key => items.push(...sortHoochies(groupedItems[key], 0, key)));
 
-        sheet.getRange(startRow, startCol, numItems, items[0].length).setNumberFormat('@').setValues(items); // Move the item values to the destination sheet
+        sheet.getRange(startRow, startCol, numItems, items[0].length).setNumberFormat('@').setValues(itemVals); // Move the item values to the destination sheet
       }
     }
 
