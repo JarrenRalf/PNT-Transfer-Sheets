@@ -2330,7 +2330,10 @@ function getCounts()
   const numItems = output.length;
   infoCountsSheet.getRange('A4:C').clearContent();
   infoCountsSheet.getRange(1, 2, 1, 2).setFormulas([['=COUNTA($C$4:$C$' + (numItems + 3) + ')','=' + numItems + '-Completed_InfoCounts']]);
-  infoCountsSheet.getRange(4, 1, numItems, 3).setValues(output);
+
+  if (numItems > 0)
+    infoCountsSheet.getRange(4, 1, numItems, 3).setValues(output);
+
   applyFullRowFormatting(infoCountsSheet, 4, numItems, 3);
 
   if (isRichmondSpreadsheet(spreadsheet))
