@@ -1881,7 +1881,7 @@ function copySelectedValues(sheet, startRow, numCols, qtyCol, isInfoCountsPage, 
 
         // Object.keys(groupedItems).forEach(key => items.push(...sortHoochies(groupedItems[key], 0, key)));
 
-        sheet.getRange(startRow, startCol, numItems, items[0].length).setNumberFormat('@').setValues(itemVals); // Move the item values to the destination sheet
+        sheet.getRange(startRow, startCol, numItems, itemVals[0].length).setNumberFormat('@').setValues(itemVals); // Move the item values to the destination sheet
       }
     }
 
