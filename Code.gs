@@ -5290,8 +5290,8 @@ function sendEmailToTrites()
     htmlOutput.append('</tbody></table></div>')
 
     MailApp.sendEmail({
-      to: "triteswarehouse@pacificnetandtwine.com, scottnakashima@hotmail.com",
-      cc: "mark@pacificnetandtwine.com, warehouse@pacificnetandtwine.com",
+      to: "scottnakashima@hotmail.com, jarren@pacificnetandtwine.com",
+      cc: "mark@pacificnetandtwine.com, warehouse@pacificnetandtwine.com, triteswarehouse@pacificnetandtwine.com",
       subject: pntStoreLocation + " store has ordered the following items. Do you have any of them at Trites?",
       htmlBody: htmlOutput.getContent(),
     });
