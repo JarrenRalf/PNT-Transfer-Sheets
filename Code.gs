@@ -4470,10 +4470,7 @@ function search(e, spreadsheet, sheet)
                   output.push(...data.filter(item => item[6] > 0))
                 else
                 {
-                  const tritesData = data.filter(item => item[6] > 0);
-                  const numTritesData = tritesData.length;
-
-                  for (var i = 0; i < numTritesData; i++) // Loop through all of the descriptions from the search data
+                  for (var i = 0; i < numRows; i++) // Loop through all of the descriptions from the search data
                   {
                     loop: for (var j = 0; j < numSearches; j++) // Loop through the number of searches
                     {
@@ -4484,11 +4481,11 @@ function search(e, spreadsheet, sheet)
                         if (searches[j][k] === 'trites')
                           continue;
 
-                        if (tritesData[i][1].toString().toLowerCase().includes(searches[j][k])) // Does the i-th item description contain the k-th search word in the j-th search
+                        if (data[i][6] > 0 && data[i][1].toString().toLowerCase().includes(searches[j][k])) // Does the i-th item description contain the k-th search word in the j-th search
                         {
                           if (k === numSearchWords) // The last search word was succesfully found in the ith item, and thus, this item is returned in the search
                           {
-                            output.push(tritesData[i]);
+                            output.push(data[i]);
                             break loop;
                           }
                         }
@@ -4552,10 +4549,7 @@ function search(e, spreadsheet, sheet)
                   output.push(...data.filter(item => item[6] > 0))
                 else
                 {
-                  const tritesData = data.filter(item => item[6] > 0);
-                  const numTritesData = tritesData.length;
-
-                  for (var i = 0; i < numTritesData; i++) // Loop through all of the descriptions from the search data
+                  for (var i = 0; i < numRows; i++) // Loop through all of the descriptions from the search data
                   {
                     loop: for (var j = 0; j < numSearches; j++) // Loop through the number of searches
                     {
@@ -4566,17 +4560,17 @@ function search(e, spreadsheet, sheet)
                         if (searches[j][k] === 'trites')
                           continue;
 
-                        if (tritesData[i][1].toString().toLowerCase().includes(searches[j][k])) // Does the i-th item description contain the k-th search word in the j-th search
+                        if (data[i][6] > 0 && data[i][1].toString().toLowerCase().includes(searches[j][k])) // Does the i-th item description contain the k-th search word in the j-th search
                         {
                           if (k === numSearchWords) // The last search word was succesfully found in the ith item, and thus, this item is returned in the search
                           {
                             for (var l = 0; l < dontIncludeTheseWords.length; l++)
                             {
-                              if (!tritesData[i][1].toString().toLowerCase().includes(dontIncludeTheseWords[l]))
+                              if (!data[i][1].toString().toLowerCase().includes(dontIncludeTheseWords[l]))
                               {
                                 if (l === dontIncludeTheseWords.length - 1)
                                 {
-                                  output.push(tritesData[i]);
+                                  output.push(data[i]);
                                   break loop;
                                 }
                               }
