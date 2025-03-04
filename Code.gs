@@ -4457,7 +4457,7 @@ function search(e, spreadsheet, sheet)
           {
             const inventorySheet = spreadsheet.getSheetByName("INVENTORY");
             const numRows = inventorySheet.getLastRow() - 7;
-            const data = inventorySheet.getSheetValues(8, 1, numRows, 8);
+            const data = inventorySheet.getSheetValues(8, 1, numRows, 7);
             const numSearches = searches.length; // The number searches
             const output = [];
             var numSearchWords;
@@ -4650,7 +4650,7 @@ function search(e, spreadsheet, sheet)
               }
               else // Less than MAX_NUM_ITEMS items were found
                 sheet.getRange('B4').activate()                   // Move the user to the first result that was found in their search
-                  .offset(3, -1, MAX_NUM_ITEMS, 7).clearContent() // Clear the entire item display range
+                  .offset(0, -1, MAX_NUM_ITEMS, 7).clearContent() // Clear the entire item display range
                   .offset(0, 0, numItems, 7).setValues(output)    // Display all of the items found
                   .offset(-3, 0, 1, 1).setValue((numItems !== 1) ? numItems + " results found." : numItems + " result found.") // Display message stating how many results were found
                   .offset(1, 0, 2, 1).setValue((new Date().getTime() - startTime)/1000 + " s"); // Function runtime
