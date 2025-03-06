@@ -1496,7 +1496,7 @@ function clearInventory()
     inventorySheet.getRange('A8:I').clearContent();
     inventorySheet.getRange('A7:A').activate(); // This line activates the entire first column of the spreadsheet to verify the number of rows of the sheet
     inventorySheet.getRange(7, 1, numRows, data[0].length).setNumberFormat('@').setValues(data);
-    numRowsRange.setValues([[numRows, dateStamp(undefined, null, null, null, 'dd MMM HH:mm'), getRunTime(startTime)]]);
+    numRowsRange.setValues([[numRows - 1, dateStamp(undefined, null, null, null, 'dd MMM HH:mm'), getRunTime(startTime)]]);
 
     spreadsheet.getSheetByName("Assembly").clearContents();
     spreadsheet.getSheetByName("UoM Conversion").clearContents();
@@ -1516,13 +1516,13 @@ function clearInventory()
     inventorySheet.getRange(9, 1, numRows, data[0].length).setNumberFormat('@').setValues(data);
     const date1 = dateStamp(undefined, null, null, null, 'dd MMM HH:mm');
     const runTime1 = getRunTime(startTime);
-    numRowsRange.setValues([[numRows, date1, runTime1],[null, null, null]]); // The number of active items from Adagio, including "No TS"
+    numRowsRange.setValues([[numRows - 1, date1, runTime1],[null, null, null]]); // The number of active items from Adagio, including "No TS"
     
     const startTime2 = new Date().getTime();
     const searchData = data.filter(e => e[8] !== "No TS").map(f => [f[0], f[1], null, f[2], f[3], f[4], f[5]]); // Remove "No TS" items and keep units, descriptions and inventory
     const numItems = searchData.length;
     spreadsheet.getSheetByName("SearchData").clearContents().getRange(1, 1, numItems, searchData[0].length).setNumberFormat('@').setValues(searchData);
-    numRowsRange.setValues([[numRows, date1, runTime1],[numItems, dateStamp(undefined, null, null, null, 'dd MMM HH:mm'), getRunTime(startTime2)]]);
+    numRowsRange.setValues([[numRows - 1, date1, runTime1],[numItems - 1, dateStamp(undefined, null, null, null, 'dd MMM HH:mm'), getRunTime(startTime2)]]);
   }
 }
 
