@@ -5113,7 +5113,7 @@ function search(e, spreadsheet, sheet)
         }
         else if (values[0][0].toString().includes('-')) // The SKU contains dashes because that's the convention from Adagio
         {
-          skus = values.map(sku => sku[0].substring(0,4) + sku[0].substring(5,9) + sku[0].substring(10)).map(item => {
+          skus = values.map(sku => (sku[0].substring(0,4) + sku[0].substring(5,9) + sku[0].substring(10)).trim()).map(item => {
           
             for (var i = 0; i < numRows; i++)
             {
@@ -5211,7 +5211,7 @@ function search(e, spreadsheet, sheet)
         }
         else if (values[0][0].toString().includes('-'))
         {
-          skus = values.map(sku => sku[0].substring(0,4) + sku[0].substring(5,9) + sku[0].substring(10)).map(item => {
+          skus = values.map(sku => (sku[0].substring(0,4) + sku[0].substring(5,9) + sku[0].substring(10)).trim()).map(item => {
           
             for (var i = 0; i < numRows; i++)
             {
