@@ -5462,7 +5462,7 @@ function sendEmailToTrites()
           else 
             return [SpreadsheetApp.newRichTextValue().setText("*Email Sent to Trites on " + Utilities.formatDate(new Date(), timeZone, "dd MMM yyyy")+"*").setTextStyle(emailTimestamp_TextStyle).build()]
           
-          return richTextBuilder.setTextStyle(fullTextLength + 1, fullTextLength + emailTimestamp.length, emailTimestamp_TextStyle).build();
+          return [richTextBuilder.setTextStyle(fullTextLength + 1, fullTextLength + emailTimestamp.length, emailTimestamp_TextStyle).build()];
         })
 
         notesRange.setRichTextValues(richText_Notes).setBackgrounds(notesRange.getBackgrounds());
