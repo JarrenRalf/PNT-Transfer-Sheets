@@ -334,10 +334,10 @@ function addToAllManualCountsPages()
 
         // Object.keys(groupedItems).forEach(key => items.push(...sortHoochies(groupedItems[key], 0, key)));
 
-        const items = manualCountsSheet.getSheetValues(4, 1, startRow - 4, manualCountsSheet.getMaxColumns()).concat(items.map(val => [...val, '', '', '', '', '']));
+        const items_ = manualCountsSheet.getSheetValues(4, 1, startRow - 4, manualCountsSheet.getMaxColumns()).concat(items.map(val => [...val, '', '', '', '', '']));
 
-        manualCountsSheet.getRange(4, 1, items.length, items[0].length).setNumberFormat('@').setValues(items); // Move the item values to the destination sheet
-        applyFullRowFormatting(manualCountsSheet, 4, items.length, 7); // Apply the proper formatting
+        manualCountsSheet.getRange(4, 1, items_.length, items_[0].length).setNumberFormat('@').setValues(items_); // Move the item values to the destination sheet
+        applyFullRowFormatting(manualCountsSheet, 4, items_.length, 7); // Apply the proper formatting
       }
       else
       {
