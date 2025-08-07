@@ -4506,8 +4506,10 @@ function search(e, spreadsheet, sheet)
                 for (var j = 0; j < numTypesOfHoochies; j++) // Loop through the number of searches
                 {
                   for (var i = 0; i < numRows; i++) // Loop through all of the descriptions from the search data
+                  {
                     if (data[i][7].toString().substring(0, 8) === hoochiePrefixes[j] && !data[i][1].toString().toLowerCase().includes('rig')) // Does the i-th sku contain begin with the j-th hoochie prefix 
                       hoochies[j].push(data[i]); // The description also does not contain the word "rig"
+                  }
 
                   hoochies[j] = sortHoochies(hoochies[j], 1, hoochiePrefixes[j])
                 }
@@ -5417,13 +5419,23 @@ function sendEmailToBranchStore(status, row, rowValues, sheet, spreadsheet)
   htmlTemplate.shipmentStatus = status;
   htmlTemplate.url = spreadsheet.getUrl() + '#gid=' + spreadsheet.getSheetByName("Shipped").getSheetId();
 
-  MailApp.sendEmail({
-    to: (isParksvilleSpreadsheet(spreadsheet)) ? 
-          "eryn@pacificnetandtwine.com, lodgesales@pacificnetandtwine.com, noah@pacificnetandtwine.com, shane@pacificnetandtwine.com, pntparksville@gmail.com, parksville@pacificnetandtwine.com"
-        : "pr@pacificnetandtwine.com, pntrupert@gmail.com",
-    subject: "Shipment Status Change on the Transfer Sheet: " + status,
-    htmlBody: htmlTemplate.evaluate().getContent(),
-  });
+  if (isParksvilleSpreadsheet(spreadsheet))
+  {
+    if (MailApp.getRemainingDailyQuota() > 5)
+      MailApp.sendEmail({
+        to: "eryn@pacificnetandtwine.com, lodgesales@pacificnetandtwine.com, noah@pacificnetandtwine.com, shane@pacificnetandtwine.com, pntparksville@gmail.com, parksville@pacificnetandtwine.com",
+        subject: "Shipment Status Change on the Transfer Sheet: " + status,
+        htmlBody: htmlTemplate.evaluate().getContent(),
+      });
+  }
+  else if (MailApp.getRemainingDailyQuota() > 1)
+  {
+    MailApp.sendEmail({
+      to: "pr@pacificnetandtwine.com, pntrupert@gmail.com",
+      subject: "Shipment Status Change on the Transfer Sheet: " + status,
+      htmlBody: htmlTemplate.evaluate().getContent(),
+    });
+  }
 }
 
 /**
@@ -5493,12 +5505,13 @@ function sendEmailToTrites()
 
     htmlOutput.append('</tbody></table></div>')
 
-    MailApp.sendEmail({
-      to: "scottnakashima@hotmail.com, jarren@pacificnetandtwine.com",
-      cc: "mark@pacificnetandtwine.com, warehouse@pacificnetandtwine.com, triteswarehouse@pacificnetandtwine.com",
-      subject: pntStoreLocation + " store has ordered the following items. Do you have any of them at Trites?",
-      htmlBody: htmlOutput.getContent(),
-    });
+    if (MailApp.getRemainingDailyQuota() > 5)
+      MailApp.sendEmail({
+        to: "scottnakashima@hotmail.com, jarren@pacificnetandtwine.com",
+        cc: "mark@pacificnetandtwine.com, warehouse@pacificnetandtwine.com, triteswarehouse@pacificnetandtwine.com",
+        subject: pntStoreLocation + " store has ordered the following items. Do you have any of them at Trites?",
+        htmlBody: htmlOutput.getContent(),
+      });
   }
   else
     Browser.msgBox('Please select an item or items on the Order page.')
