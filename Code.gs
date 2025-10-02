@@ -5631,7 +5631,7 @@ function search(e, spreadsheet, sheet)
               .setHorizontalAlignments(new Array(numItems).fill(['center', 'left', 'center', 'center', 'center', 'center', 'center', 'center'])).setVerticalAlignment('middle')
               .setBackgrounds(backgroundColours).setFontColors(fontColours).setBorder(null, null, false, null, false, false).setValues(skus).activate()
             .offset(-3, 0, 1, 1).setValue((numItems !== 1) ? numItems + " results found." : numItems + " result found.")
-            .offset(1, 0, 2, 1).setValues([[null], (new Date().getTime() - startTime)/1000 + " s"])
+            .offset( 1, 0, 2, 1).setValues([[null], [(new Date().getTime() - startTime)/1000 + " s"]])
         }
       }
     }
