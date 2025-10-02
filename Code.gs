@@ -2825,6 +2825,36 @@ function isRichmondSpreadsheet(spreadsheet)
 }
 
 /**
+ * This function returns true if the presented number is a UPC-A, false otherwise.
+ * 
+ * @param {Number} upcNumber : The UPC-A number
+ * @returns Whether the given value is a UPC-A or not
+ * @author Jarren Ralf
+ */
+function isUPC_A(upcNumber)
+{
+  for (var i = 0, sum = 0, upc = upcNumber.toString(); i < upc.length - 1; i++)
+    sum += (i % 2 === 0) ? Number(upc[i])*3 : Number(upc[i])
+
+  return upc.endsWith(Math.ceil(sum/10)*10 - sum)
+}
+
+/**
+ * This function returns true if the presented number is a EAN_13, false otherwise.
+ * 
+ * @param {Number} upcNumber : The EAN_13 number
+ * @returns Whether the given value is a EAN_13 or not
+ * @author Jarren Ralf
+ */
+function isEAN_13(upcNumber)
+{
+  for (var i = 0, sum = 0, upc = upcNumber.toString(); i < upc.length - 1; i++)
+    sum += (i % 2 === 0) ? Number(upc[i]) : Number(upc[i])*3
+
+  return upc.endsWith(Math.ceil(sum/10)*10 - sum) && upc.length === 13
+}
+
+/**
  * This function is run on a trigger between 11 pm and 12 am everyday. The if statement subsequently only runs the countLog function on working days.
  * 
  * @author Jarren Ralf
@@ -5135,7 +5165,7 @@ function search(e, spreadsheet, sheet)
 
     if (values.length !== 0) // Don't run function if every value is blank, probably means the user pressed the delete key on a large selection
     {
-      var data, someSKUsNotFound = false, skus;
+      var data, someSKUsNotFound = false, someUPCsNotFound = false, skus, itemNumber;
 
       if (isRichmondSpreadsheet(spreadsheet))
       {
@@ -5144,13 +5174,41 @@ function search(e, spreadsheet, sheet)
         
         data = inventorySheet.getSheetValues(8, 1, numRows, 8);
 
-        if (values[0][0].toString().includes(' - ')) // Strip the sku from the first part of the google description
+        if (/^\d+$/.test(values[0][0]) && (isUPC_A(values[0][0]) || isEAN_13(values[0][0]))) // Check if the values pasted are UPC codes
+        {
+          const upcDatabaseSheet = spreadsheet.getSheetByName('UPC Database');
+          const numRows_UPC = upcDatabaseSheet.getLastRow() - 1;
+          const upcDatabase = upcDatabaseSheet.getSheetValues(2, 1, numRows_UPC, 3);
+
+          skus = values.map(item => {
+
+            for (var i = 0; i < numRows_UPC; i++)
+            {
+              if (upcDatabase[i][0] == item[0])
+              {
+                itemNumber = upcDatabase[i][2].split(" - ").pop().toString().toUpperCase();
+
+                for (var j = 0; j < numRows; j++)
+                {
+                  if (data[j][7] == itemNumber)
+                    return [data[j][0], data[j][1], data[j][2], data[j][3], data[j][4], data[j][5], data[j][6]];
+                }
+              }
+            }
+
+            someUPCsNotFound = true;
+
+            return ['UPC Not Found:', item[0], '', '', '', '', '']
+          });
+        }
+        else if (values[0][0].toString().includes(' - ')) // Strip the sku from the first part of the google description
         {
           skus = values.map(item => {
           
             for (var i = 0; i < numRows; i++)
             {
-              if (data[i][7] == item[0].toString().split(' - ').pop().toUpperCase())
+              // After checking the SKU, check the description (assuming it could be the vendor's product code
+              if (data[i][7] == item[0].toString().split(' - ').pop().toUpperCase() || data[i][1].includes(item[0].toString()))
                 return [data[i][0], data[i][1], data[i][2], data[i][3], data[i][4], data[i][5], data[i][6]]
             }
 
@@ -5165,7 +5223,8 @@ function search(e, spreadsheet, sheet)
           
             for (var i = 0; i < numRows; i++)
             {
-              if (data[i][7] == item.toString().toUpperCase())
+              // After checking the SKU, check the description (assuming it could be the vendor's product code
+              if (data[i][7] == item.toString().toUpperCase() || data[i][1].includes(item[0].toString()))
                 return [data[i][0], data[i][1], data[i][2], data[i][3], data[i][4], data[i][5], data[i][6]]
             }
 
@@ -5180,7 +5239,8 @@ function search(e, spreadsheet, sheet)
           
             for (var i = 0; i < numRows; i++)
             {
-              if (data[i][7] == item[0].toString().toUpperCase())
+              // After checking the SKU, check the description (assuming it could be the vendor's product code
+              if (data[i][7] == item[0].toString().toUpperCase() || data[i][1].includes(item[0].toString()))
                 return [data[i][0], data[i][1], data[i][2], data[i][3], data[i][4], data[i][5], data[i][6]]
             }
 
@@ -5220,6 +5280,36 @@ function search(e, spreadsheet, sheet)
             .offset((numSkusFound != 0) ? -1*numSkusNotFound - 3: -3, 0, 1, 1).setValue((numSkusFound !== 1) ? numSkusFound + " results found." : numSkusFound + " result found.")
             .offset(1, 0, 2, 1).setValue((new Date().getTime() - startTime)/1000 + " s"); // Function runtime
         }
+        else if (someUPCsNotFound)
+        {
+          const upcsNotFound = [];
+          var isUpcFound;
+
+          const upcsFound = skus.filter(item => {
+            isUpcFound = item[0] !== 'UPC Not Found:'
+
+            if (!isUpcFound)
+              upcsNotFound.push(item)
+
+            return isUpcFound;
+          })
+
+          const numUpcsFound = upcsFound.length;
+          const numUpcsNotFound = upcsNotFound.length;
+          const items = [].concat.apply([], [upcsNotFound, upcsFound]); // Concatenate all of the item values as a 2-D array
+          const numItems = items.length
+
+          sheet.getRange(1, 2, 1, 2).clearContent() // Clear the search bar
+            .offset(3, -1, MAX_NUM_ITEMS, 7).clearContent().setBackground('white').setFontColor('black').setBorder(true, true, true, true, false, false)
+            .offset(0, 0, numItems, 7)
+              .setFontFamily('Arial').setFontWeight('bold').setFontSizes(new Array(numItems).fill([10, 10, 10, 10, 10, 10, 10]))
+              .setHorizontalAlignments(new Array(numItems).fill(['center', 'left', 'center', 'center', 'center', 'center', 'center'])).setVerticalAlignment('middle')
+              .setBackgrounds([].concat.apply([], [new Array(numUpcsNotFound).fill(new Array(7).fill('#ffe599')), new Array(numUpcsFound).fill(new Array(7).fill('white'))]))
+              .setBorder(null, null, false, null, false, false).setValues(items)
+            .offset((numUpcsFound != 0) ? numUpcsNotFound : 0, 0, (numUpcsFound != 0) ? numUpcsFound : numUpcsNotFound, 7).activate()
+            .offset((numUpcsFound != 0) ? -1*numUpcsNotFound - 3: -3, 0, 1, 1).setValue((numUpcsFound !== 1) ? numUpcsFound + " results found." : numUpcsFound + " result found.")
+            .offset(1, 0, 2, 1).setValue((new Date().getTime() - startTime)/1000 + " s"); // Function runtime
+        }
         else // All SKUs were succefully found
         {
           const numItems = skus.length
@@ -5242,13 +5332,41 @@ function search(e, spreadsheet, sheet)
         data = inventorySheet.getSheetValues(2, 1, numRows, 7);
         var columnIndex = (isParksvilleSpreadsheet(spreadsheet)) ? [4, 3, 5, 6] : [5, 3, 4, 6];
         
-        if (values[0][0].toString().includes(' - ')) // Strip the sku from the first part of the google description
+        if (/^\d+$/.test(values[0][0]) && (isUPC_A(values[0][0]) || isEAN_13(values[0][0]))) // Check if the values pasted are UPC codes
+        {
+          const upcDatabaseSheet = spreadsheet.getSheetByName('UPC Database');
+          const numRows_UPC = upcDatabaseSheet.getLastRow() - 1;
+          const upcDatabase = upcDatabaseSheet.getSheetValues(2, 1, numRows_UPC, 3);
+
+          skus = values.map(item => {
+
+            for (var i = 0; i < numRows_UPC; i++)
+            {
+              if (upcDatabase[i][0] == item[0])
+              {
+                itemNumber = upcDatabase[i][2].split(" - ").pop().toString().toUpperCase();
+
+                for (var j = 0; j < numRows; j++)
+                {
+                  if (data[j][7] == itemNumber)
+                    return [data[j][0], data[j][1], data[j][2], data[j][3], data[j][4], data[j][5], data[j][6]];
+                }
+              }
+            }
+
+            someUPCsNotFound = true;
+
+            return ['UPC Not Found:', item[0], '', '', '', '', '']
+          });
+        }
+        else if (values[0][0].toString().includes(' - ')) // Strip the sku from the first part of the google description
         {
           skus = values.map(item => {
           
             for (var i = 0; i < numRows; i++)
             {
-              if (data[i][1].toString().split(' - ').pop().toUpperCase() == item[0].toString().split(' - ').pop().toUpperCase())
+              // After checking the SKU, check the description (assuming it could be the vendor's product code
+              if (data[i][1].toString().split(' - ').pop().toUpperCase() == item[0].toString().split(' - ').pop().toUpperCase() || data[i][1].includes(item[0].toString()))
                 return [data[i][0], data[i][1], data[i][2], ...columnIndex.map(col => data[i][col]), '']
             }
 
@@ -5263,7 +5381,8 @@ function search(e, spreadsheet, sheet)
           
             for (var i = 0; i < numRows; i++)
             {
-              if (data[i][1].toString().split(' - ').pop().toUpperCase() == item.toString().toUpperCase())
+              // After checking the SKU, check the description (assuming it could be the vendor's product code
+              if (data[i][1].toString().split(' - ').pop().toUpperCase() == item.toString().toUpperCase() || data[i][1].includes(item[0].toString()))
                 return [data[i][0], data[i][1], data[i][2],  ...columnIndex.map(col => data[i][col]), '']
             }
 
@@ -5278,7 +5397,8 @@ function search(e, spreadsheet, sheet)
           
             for (var i = 0; i < numRows; i++)
             {
-              if (data[i][1].toString().split(' - ').pop().toUpperCase() == item[0].toString().toUpperCase())
+              // After checking the SKU, check the description (assuming it could be the vendor's product code
+              if (data[i][1].toString().split(' - ').pop().toUpperCase() == item[0].toString().toUpperCase() || data[i][1].includes(item[0].toString()))
                 return [data[i][0], data[i][1], data[i][2], ...columnIndex.map(col => data[i][col]), '']
             }
 
@@ -5368,6 +5488,88 @@ function search(e, spreadsheet, sheet)
                 .setValues(items)
             .offset((numSkusFound != 0) ? numSkusNotFound : 0, 0, (numSkusFound != 0) ? numSkusFound : numSkusNotFound, 8).activate()
             .offset((numSkusFound != 0) ? -1*numSkusNotFound - 3: -3, 0, 1, 1).setValue((numSkusFound !== 1) ? numSkusFound + " results found." : numSkusFound + " result found.")
+            .offset(1, 0, 2, 1).setValues([[null], (new Date().getTime() - startTime)/1000 + " s"])
+        }
+        else if (someUPCsNotFound)
+        {
+          const upcsNotFound = [];
+          var isUpcFound;
+
+          const upcsFound = skus.filter(item => {
+            isUpcFound = item[0] !== 'UPC Not Found:'
+
+            if (!isUpcFound)
+              upcsNotFound.push(item)
+
+            return isUpcFound;
+          })
+
+          const numUpcsFound = upcsFound.length;
+          const orderSheet = spreadsheet.getSheetByName("Order");
+          const shippedSheet = spreadsheet.getSheetByName("Shipped");
+          const numOrderedItems = orderSheet.getLastRow() - 3;
+          const numShippedItems = shippedSheet.getLastRow() - 3;
+          const orderedItems =   orderSheet.getSheetValues(4, 5, numOrderedItems, 1).map(u => u[0].split(' - ').pop().toString().toUpperCase()); // The items on the order sheet
+          const shippedItems = shippedSheet.getSheetValues(4, 5, numShippedItems, 1).map(u => u[0].split(' - ').pop().toString().toUpperCase()); // The items on the shipped sheet
+          const backgroundColours = [], fontColours = [];
+          var isOnOrderPage, isOnShippedPage;
+
+          for (var i = 0; i < numUpcsFound; i++) // Loop through the skus that were pasted
+          {
+            for (var o = 0; o < numOrderedItems; o++) // Check if the item is on the order page
+            {
+              if (orderedItems[o] === upcsFound[i][1].split(' - ').pop().toString().toUpperCase())
+              {
+                isOnOrderPage = true
+                break;
+              }
+              isOnOrderPage = false;
+            }
+            for (var s = 0; s < numShippedItems; s++) // Check if the item is on the shipped page
+            {
+              if (shippedItems[s] === upcsFound[i][1].split(' - ').pop().toString().toUpperCase())
+              {
+                isOnShippedPage = true
+                break;
+              }
+              isOnShippedPage = false;
+            }
+
+            if (isOnShippedPage)
+            {
+              upcsFound[i][7] = 'SHIPPED - On it\'s way';
+              backgroundColours.push([...new Array(8).fill('#cc0000')]) // Highlight red
+              fontColours.push([...new Array(8).fill('yellow')])        // Yellow font
+            }
+            else if (isOnOrderPage)
+            {
+              upcsFound[i][7] = 'Already on OrderSheet';
+              backgroundColours.push([...new Array(8).fill('yellow')]) // Highlight yellow
+              fontColours.push([...new Array(8).fill('#cc0000')])      // Red font
+            }
+            else // The item is neither on the shipped nor the ordered page
+            {
+              backgroundColours.push([...new Array(8).fill('white')])
+              fontColours.push([...new Array(8).fill('black')])
+            }
+          }
+
+          const numUpcsNotFound = upcsNotFound.length;
+          const items = [].concat.apply([], [upcsNotFound, upcsFound]); // Concatenate all of the item values as a 2-D array
+          const numItems = items.length
+          fontColours.unshift(...new Array(numUpcsNotFound).fill(new Array(8).fill('black')))
+
+          sheet.getRange(1, 2, 1, 2).clearContent() // Clear the search bar
+            .offset(3, -1, MAX_NUM_ITEMS, 8).clearContent().setBackground('white').setFontColor('black').setBorder(true, true, true, true, false, false)
+            .offset(0, 0, numItems, 8)
+              .setFontFamily('Arial').setFontWeight('bold')
+                .setFontSizes(new Array(numItems).fill([10, 10, 10, 10, 10, 10, 10, 12]))
+                .setHorizontalAlignments(new Array(numItems).fill(['center', 'left', 'center', 'center', 'center', 'center', 'center', 'center'])).setVerticalAlignment('middle')
+                .setBackgrounds([].concat.apply([], [new Array(numUpcsNotFound).fill(new Array(8).fill('#ffe599')), backgroundColours]))
+                .setFontColors(fontColours).setBorder(null, null, false, null, false, false)
+                .setValues(items)
+            .offset((numUpcsFound != 0) ? numUpcsNotFound : 0, 0, (numUpcsFound != 0) ? numUpcsFound : numUpcsNotFound, 8).activate()
+            .offset((numUpcsFound != 0) ? -1*numUpcsNotFound - 3: -3, 0, 1, 1).setValue((numUpcsFound !== 1) ? numUpcsFound + " results found." : numUpcsFound + " result found.")
             .offset(1, 0, 2, 1).setValues([[null], (new Date().getTime() - startTime)/1000 + " s"])
         }
         else // All SKUs were succefully found
