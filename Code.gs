@@ -4059,7 +4059,7 @@ function moveSelectedItemsFromCarrierNotAssigned()
         {
           const chosenShipment = currentShipmentList[index];
           var shipmentRow = allCarriers.find(carrier => carrier[1] === chosenShipment)[2];
-          var range, col, column_1, range_NumRows, items, numItems, backgroundColours_Dates, backgroundColours_Notes, richTextValues, notesRange, 
+          var range, col, column_1, range_NumRows, items, backgroundColours_Dates, backgroundColours_Notes, richTextValues, notesRange, 
             values = [], dateColours = [], notesColours = [], notesRichText = [], isCarrierNotAssigned = true, isNewShipment = false;
 
           if (typeof shipmentRow === 'string') // We must create a new carrier line
@@ -4081,26 +4081,23 @@ function moveSelectedItemsFromCarrierNotAssigned()
                 .setValues([[chosenShipment, ...new Array(9).fill(null), 'via']])
               .offset(0,  0, 1, cols - 1).merge()
               .offset(0, 12, 1, 1).setDataValidation(shippedSheet.getRange(3, 13).getDataValidation())
-              
           }
 
-          const numActiveRanges = activeRanges.length;
           shipmentRow++;
           
-          while (numActiveRanges > 0) // Loop through the active ranges
+          while (activeRanges.length > 0) // Loop through the active ranges, leave as "activeRanges.length" because the length of the items array changes with is critical for exiting the while loop
           {
             range = (isNewShipment) ? activeRanges.pop().offset(1, 0) : activeRanges.pop();
             col = range.getColumn();
             column_1 = 1 - col;
             range_NumRows = range.getNumRows();
             items = range.offset(0, column_1, range_NumRows, numCols).getValues().map(carrier => {if (carrier[9] !== 'Carrier Not Assigned') isCarrierNotAssigned = false; carrier[9] = chosenShipment; return carrier});
-            numItems = items.length;
             backgroundColours_Dates = range.offset(0, column_1, range_NumRows, 1).getBackgrounds();
             notesRange = range.offset(0, 6 - col, range_NumRows, 1);
             backgroundColours_Notes = notesRange.getBackgrounds();
             richTextValues = notesRange.getRichTextValues();
             
-            while (numItems > 0)
+            while (items.length > 0) // Leave as "items.length" because the length of the items array changes with is critical for exiting the while loop
             {
               values.push(items.pop());
               dateColours.push(backgroundColours_Dates.pop());
@@ -4116,26 +4113,26 @@ function moveSelectedItemsFromCarrierNotAssigned()
           {
             if (isCarrierNotAssigned)
             {
-              const numItems = values.length;
+              const numValues = values.length;
 
-              shippedSheet.insertRowsBefore(shipmentRow, numItems).getRange(shipmentRow, 1, numItems, numCols).setValues(values.reverse());
-              applyFullRowFormatting(shippedSheet, shipmentRow, numItems, numCols - 1); 
-              shippedSheet.autoResizeRows(shipmentRow, numItems).getRange(shipmentRow, 1, numItems).setBackgrounds(dateColours.reverse())
-                .offset(0,   5, numItems).setBackgrounds(notesColours.reverse()).setRichTextValues(notesRichText.reverse())
-                .offset(0,   4, numItems).setDataValidation((isNewShipment) ? 
+              shippedSheet.insertRowsBefore(shipmentRow, numValues).getRange(shipmentRow, 1, numValues, numCols).setValues(values.reverse());
+              applyFullRowFormatting(shippedSheet, shipmentRow, numValues, numCols - 1); 
+              shippedSheet.autoResizeRows(shipmentRow, numValues).getRange(shipmentRow, 1, numValues).setBackgrounds(dateColours.reverse())
+                .offset(0,   5, numValues).setBackgrounds(notesColours.reverse()).setRichTextValues(notesRichText.reverse())
+                .offset(0,   4, numValues).setDataValidation((isNewShipment) ? 
                   shippedSheet.getRange(3, 10).getDataValidation().copy().requireValueInRange(dataValidationSheet.getRange("$D$1:$D")).build() : 
                   shippedSheet.getRange(3, 10).getDataValidation())
-                .offset(0,   3, numItems).setDataValidation(null)
-                .offset(0, -12, numItems, numCols - 1).activate();
+                .offset(0,   3, numValues).setDataValidation(null)
+                .offset(0, -12, numValues, numCols - 1).activate();
 
               rangesToDelete.map(range => {
                 if (isNewShipment)
                 {
                   range = range.offset(1, 0);
-                  shippedSheet.deleteRows(numItems + range.getRow(), range.getNumRows()) 
+                  shippedSheet.deleteRows(numValues + range.getRow(), range.getNumRows()) 
                 }
                 else
-                  shippedSheet.deleteRows(numItems + range.getRow(), range.getNumRows())
+                  shippedSheet.deleteRows(numValues + range.getRow(), range.getNumRows())
               });
             }
             else
