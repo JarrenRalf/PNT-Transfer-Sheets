@@ -111,6 +111,7 @@ const inflow_conversions = {
   "VEXAR L36 WEB for CRAB CAGE  (100'/ROLL) -  - Golf - FOOT - 10503600": 100,
   'WEB: 210/10x1/2"x800MDx100FMx235# RACHL -  - Raschel Knotless - FOOT - 10710010FT': 600, 
   'Rachel Black We 210/9 X 3/8" X465MDX 900 -  - Raschel Knotless - POUND - 10782109038': 235,
+  'WEB: 210/48x1-3/4"x 400 md x 50 fms -  - Twisted Tarred Nylon - POUND - 10500047': 384,
   "BLACK RUBBER MATTING RIBBED    3 ' WIDE - ERIKS - Mats & Tables - FOOT - 24400000": 225,
   'MN3-7 Vexar Oyster Tube Netting Black -  - Golf - FOOT - 10501000': 1000,
   'MN8-25 Vexar Oyster Tube Netting Red -  - Golf - FOOT - 10501002': 2000,
