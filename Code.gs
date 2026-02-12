@@ -5504,7 +5504,7 @@ function search(e, spreadsheet, sheet)
                 .setValues(items)
             .offset((numSkusFound != 0) ? numSkusNotFound : 0, 0, (numSkusFound != 0) ? numSkusFound : numSkusNotFound, 8).activate()
             .offset((numSkusFound != 0) ? -1*numSkusNotFound - 3: -3, 0, 1, 1).setValue((numSkusFound !== 1) ? numSkusFound + " results found." : numSkusFound + " result found.")
-            .offset(1, 0, 2, 1).setValues([[null], (new Date().getTime() - startTime)/1000 + " s"])
+            .offset(1, 0, 2, 1).setValues([[null], [(new Date().getTime() - startTime)/1000 + " s"]])
         }
         else if (someUPCsNotFound)
         {
