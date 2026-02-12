@@ -5187,10 +5187,11 @@ function search(e, spreadsheet, sheet)
       {
         var inventorySheet = spreadsheet.getSheetByName("INVENTORY");
         const numRows = inventorySheet.getLastRow() - 7;
+        const numDigits = values[0][0];
         
         data = inventorySheet.getSheetValues(8, 1, numRows, 8);
 
-        if (/^\d+$/.test(values[0][0]) && (isUPC_A(values[0][0]) || isEAN_13(values[0][0]))) // Check if the values pasted are UPC codes
+        if (/^\d+$/.test(values[0][0]) && ((numDigits === 12 && isUPC_A(values[0][0])) || (numDigits === 13 && isEAN_13(values[0][0])))) // Check if the values pasted are UPC codes
         {
           const upcDatabaseSheet = spreadsheet.getSheetByName('UPC Database');
           const numRows_UPC = upcDatabaseSheet.getLastRow() - 1;
@@ -5347,8 +5348,9 @@ function search(e, spreadsheet, sheet)
         const numRows = inventorySheet.getLastRow() - 1;
         data = inventorySheet.getSheetValues(2, 1, numRows, 7);
         var columnIndex = (isParksvilleSpreadsheet(spreadsheet)) ? [4, 3, 5, 6] : [5, 3, 4, 6];
+        const numDigits = values[0][0].length;
         
-        if (/^\d+$/.test(values[0][0]) && (isUPC_A(values[0][0]) || isEAN_13(values[0][0]))) // Check if the values pasted are UPC codes
+        if (/^\d+$/.test(values[0][0]) && ((numDigits === 12 && isUPC_A(values[0][0])) || (numDigits === 13 && isEAN_13(values[0][0])))) // Check if the values pasted are UPC codes
         {
           const upcDatabaseSheet = spreadsheet.getSheetByName('UPC Database');
           const numRows_UPC = upcDatabaseSheet.getLastRow() - 1;
