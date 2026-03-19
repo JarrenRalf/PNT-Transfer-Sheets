@@ -5224,7 +5224,7 @@ function search(e, spreadsheet, sheet)
           
             for (var i = 0; i < numRows; i++)
             {
-              // After checking the SKU, check the description (assuming it could be the vendor's product code
+              // After checking the SKU, check the description (assuming it could be the vendor's product code)
               if (data[i][7] == item[0].toString().split(' - ').pop().toUpperCase() || data[i][1].includes(item[0].toString()))
                 return [data[i][0], data[i][1], data[i][2], data[i][3], data[i][4], data[i][5], data[i][6]]
             }
@@ -5753,7 +5753,7 @@ function sendEmailToTrites()
     const gid = spreadsheet.getSheetByName('Order').getSheetId();
     const htmlTemplate = HtmlService.createTemplateFromFile('tritesStockCheckEmail')
     htmlTemplate.storeLocation = pntStoreLocation;
-    htmlTemplate.transferSheetUrl = spreadsheet.getUrl() + '?gid=' + gid + '#gid=' + gid + '&range=I' + row.shift();
+    htmlTemplate.transferSheetUrl = spreadsheet.getUrl() + '?gid=' + gid + '#gid=' + gid + '&amprange=I' + row.shift();
     const htmlOutput = htmlTemplate.evaluate();
     const numItems = itemValues.length;
     
