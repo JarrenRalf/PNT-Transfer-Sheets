@@ -5224,8 +5224,8 @@ function search(e, spreadsheet, sheet)
           
             for (var i = 0; i < numRows; i++)
             {
-              // After checking the SKU, check the description (assuming it could be the vendor's product code)
-              if (data[i][7] == item[0].toString().split(' - ').pop().toUpperCase() || data[i][1].includes(item[0].toString()))
+              // After checking the SKU, check the description **Turned OFF (assuming it could be the vendor's product code
+              if (data[i][7] == item[0].toString().split(' - ').pop().toUpperCase()) //  || data[i][1].includes(item[0].toString())
                 return [data[i][0], data[i][1], data[i][2], data[i][3], data[i][4], data[i][5], data[i][6]]
             }
 
@@ -5236,12 +5236,16 @@ function search(e, spreadsheet, sheet)
         }
         else if (values[0][0].toString().includes('-')) // The SKU contains dashes because that's the convention from Adagio
         {
+          Logger.log(values)
+          Logger.log('test')
           skus = values.map(sku => (sku[0].substring(0,4) + sku[0].substring(5,9) + sku[0].substring(10)).trim()).map(item => {
+
+            Logger.log(item)
           
             for (var i = 0; i < numRows; i++)
             {
-              // After checking the SKU, check the description (assuming it could be the vendor's product code
-              if (data[i][7] == item.toString().toUpperCase() || data[i][1].includes(item[0].toString()))
+              // After checking the SKU,  **Turned OFF check the description 
+              if (data[i][7] == item.toString().toUpperCase()) //  || data[i][1].includes(item[0].toString())
                 return [data[i][0], data[i][1], data[i][2], data[i][3], data[i][4], data[i][5], data[i][6]]
             }
 
@@ -5256,8 +5260,8 @@ function search(e, spreadsheet, sheet)
           
             for (var i = 0; i < numRows; i++)
             {
-              // After checking the SKU, check the description (assuming it could be the vendor's product code
-              if (data[i][7] == item[0].toString().toUpperCase() || data[i][1].includes(item[0].toString()))
+              // After checking the SKU, check the description **Turned OFF (assuming it could be the vendor's product code
+              if (data[i][7] == item[0].toString().toUpperCase()) //  || data[i][1].includes(item[0].toString())
                 return [data[i][0], data[i][1], data[i][2], data[i][3], data[i][4], data[i][5], data[i][6]]
             }
 
@@ -5383,8 +5387,8 @@ function search(e, spreadsheet, sheet)
           
             for (var i = 0; i < numRows; i++)
             {
-              // After checking the SKU, check the description (assuming it could be the vendor's product code
-              if (data[i][1].toString().split(' - ').pop().toUpperCase() == item[0].toString().split(' - ').pop().toUpperCase() || data[i][1].includes(item[0].toString()))
+              // After checking the SKU, *Turned off check the description (assuming it could be the vendor's product code
+              if (data[i][1].toString().split(' - ').pop().toUpperCase() == item[0].toString().split(' - ').pop().toUpperCase()) //  || data[i][1].includes(item[0].toString())
                 return [data[i][0], data[i][1], data[i][2], ...columnIndex.map(col => data[i][col]), '']
             }
 
@@ -5399,8 +5403,8 @@ function search(e, spreadsheet, sheet)
           
             for (var i = 0; i < numRows; i++)
             {
-              // After checking the SKU, check the description (assuming it could be the vendor's product code
-              if (data[i][1].toString().split(' - ').pop().toUpperCase() == item.toString().toUpperCase() || data[i][1].includes(item[0].toString()))
+              // After checking the SKU, *Turned off check the description (assuming it could be the vendor's product code
+              if (data[i][1].toString().split(' - ').pop().toUpperCase() == item.toString().toUpperCase()) //  || data[i][1].includes(item[0].toString())
                 return [data[i][0], data[i][1], data[i][2],  ...columnIndex.map(col => data[i][col]), '']
             }
 
@@ -5415,8 +5419,8 @@ function search(e, spreadsheet, sheet)
           
             for (var i = 0; i < numRows; i++)
             {
-              // After checking the SKU, check the description (assuming it could be the vendor's product code
-              if (data[i][1].toString().split(' - ').pop().toUpperCase() == item[0].toString().toUpperCase() || data[i][1].includes(item[0].toString()))
+              // After checking the SKU, *turned off check the description (assuming it could be the vendor's product code
+              if (data[i][1].toString().split(' - ').pop().toUpperCase() == item[0].toString().toUpperCase()) //  || data[i][1].includes(item[0].toString())
                 return [data[i][0], data[i][1], data[i][2], ...columnIndex.map(col => data[i][col]), '']
             }
 
